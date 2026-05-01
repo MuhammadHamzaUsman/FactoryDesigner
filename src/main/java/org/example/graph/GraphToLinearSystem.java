@@ -26,6 +26,29 @@ public class GraphToLinearSystem {
             inputEdges = graph.collectInputEdgesOfNode(node);
             outputEdges = graph.collectOutputEdgesOfNode(node);
 
+            if(node instanceof MergerNode){
+                if(outputEdges.size() > 1){
+                    throw new RuntimeException("Merger can only hva one output");
+                }
+
+                linearSystem.insertEquation(buildEquationsFor((MergerNode) node, inputEdges, outputEdges.getFirst(), variableMapping));
+                continue;
+            }
+
+            if(node instanceof SplitterNode){
+                if(inputEdges.size() > 1){
+                    throw new RuntimeException("Merger can only hva one input");
+                }
+
+                equation = buildEquationsFor((SplitterNode) node, inputEdges.getFirst(), outputEdges, variableMapping);
+
+                for (Equation inputEquations : equation) {
+                    linearSystem.insertEquation(inputEquations);
+                }
+
+                continue;
+            }
+
             if(node instanceof TransformationNode){
 
                 equation = buildEquationsFor((TransformationNode) node, inputEdges, outputEdges, variableMapping);
@@ -49,6 +72,51 @@ public class GraphToLinearSystem {
         return variableMapping;
     }
 
+    private static List<Equation> buildEquationsFor(SplitterNode node, Edge inputEdge, List<Edge> outputEdges, Map<Long, Variable> variableMap){
+        List<Equation> equations = new ArrayList<>();
+        Equation equation = new Equation();
+
+        if(!inputEdge.item.equals(node.item)) throw new RuntimeException("Input Edges should have same item as of splitter");
+        equation.insertTerm(variableMap.get(inputEdge.id), 1);
+
+        for (Edge outputEdge : outputEdges) {
+            if(!outputEdge.item.equals(node.item)) throw new RuntimeException("Output Edge should have same item as of splitter");
+            equation.insertTerm(variableMap.get(outputEdge.id), -1);
+        }
+
+        equations.add(equation);
+
+        Edge referenceEdge = outputEdges.getFirst();
+        Variable referenceVariable = variableMap.get(referenceEdge.id);
+        double referenceWight = referenceEdge.weight;
+
+        double weightSum = outputEdges.stream().mapToDouble(edge -> edge.weight).sum();
+        for (Edge edge : outputEdges.subList(1, outputEdges.size())) {
+            equation = new Equation();
+            equation.insertTerm(variableMap.get(edge.id), referenceWight / weightSum);
+            equation.insertTerm(referenceVariable, -(edge.weight / weightSum));
+
+            equations.add(equation);
+        }
+
+        return equations;
+    }
+
+    private static Equation buildEquationsFor(MergerNode node, List<Edge> inputEdges, Edge outputEdge, Map<Long, Variable> variableMap){
+        Equation equation = new Equation();
+
+        for (Edge inputEdge : inputEdges) {
+            if(!inputEdge.item.equals(node.item)) throw new RuntimeException("Input Edges should have same item as of merger");
+
+            equation.insertTerm(variableMap.get(inputEdge.id), 1);
+        }
+
+        if(!outputEdge.item.equals(node.item)) throw new RuntimeException("Output Edge should have same item as of merger");
+        equation.insertTerm(variableMap.get(outputEdge.id), -1);
+
+        return equation;
+    }
+
     private static List<Equation> buildEquationsFor(TransformationNode node, List<Edge> inputEdges, List<Edge> outputEdges, Map<Long, Variable> variableMap){
         if (outputEdges.isEmpty()) {
             throw new RuntimeException("TransformationNode has no outputs");
@@ -57,92 +125,44 @@ public class GraphToLinearSystem {
         List<Equation> equations = new ArrayList<>(); // used to store list of equations for the node
         Recipe recipe = node.recipe; // store recipe of single node
 
-        // Select the all edges with primary Output as item from list of outputEdges
-        double referenceVariableCoefficient = recipe.outputMaterials.get(recipe.primaryOutput);
-        List<Edge> referenceItemEdges = outputEdges.stream()
-                .filter(edge -> edge.item.equals(recipe.primaryOutput))
-                .toList();
+        Edge primaryOutputEdge = outputEdges.stream()
+                .filter(edge -> recipe.primaryOutput.equals(edge.item))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Primary Output not in output edges"));
+        double referenceVariableCoefficient = recipe.outputMaterials.get(primaryOutputEdge.item);
+        Variable refreceVariable = variableMap.get(primaryOutputEdge.id);
 
-        double edgeItemCoefficient;
+        for (Edge inputEdge : inputEdges) {
+            Equation equation = new Equation();
 
-        // group item by edges this will be used to then used to make a single equation for all edges with same item
-        Map<Item, List<Edge>> itemGroups = groupEdgesByItem(inputEdges);
-        for (Item inputItem: itemGroups.keySet()) {
-            if (!recipe.inputMaterials.containsKey(inputItem)) {
-                throw new RuntimeException("Input item not found");
+            if(!recipe.inputMaterials.containsKey(inputEdge.item)){
+                throw new RuntimeException("Input Item " + inputEdge.item + "not found in input edges");
             }
 
-            edgeItemCoefficient = recipe.inputMaterials.get(inputItem);
-            addEquationsForItemEdges(itemGroups.get(inputItem), edgeItemCoefficient, referenceItemEdges, referenceVariableCoefficient, variableMap, equations);
-        }
-
-        itemGroups = groupEdgesByItem(outputEdges);
-        for (Item outputItem: itemGroups.keySet()) {
-            if(outputItem.equals(recipe.primaryOutput)) continue;
-
-            if (!recipe.outputMaterials.containsKey(outputItem)) {
-                throw new RuntimeException("Output item not found");
-            }
-
-            edgeItemCoefficient = recipe.outputMaterials.get(outputItem);
-            addEquationsForItemEdges(itemGroups.get(outputItem), edgeItemCoefficient, referenceItemEdges, referenceVariableCoefficient, variableMap, equations);
-        }
-
-        // same thing done for reference Item Edge as for other edges
-        if(referenceItemEdges.size() > 1){
-            addEquationsForProportionalInputFlow(referenceItemEdges, variableMap, equations);
-        }
-
-        return equations;
-    }
-
-    private static void addEquationsForItemEdges(
-            List<Edge> itemEdges,
-            double edgeItemCoefficient,
-            List<Edge> referenceItemEdges,
-            double referenceItemCoefficient,
-            Map<Long, Variable> variableMap,
-            List<Equation> equations
-    ) {
-        Equation equation = new Equation();
-
-        // add each edge of item in equation for splitting purpose
-        for (Edge itemEdge : itemEdges) {
-            equation.insertTerm(variableMap.get(itemEdge.id), 1);
-        }
-
-        // add each edge of referenceItem into this equation for splitting primary Item
-        for (Edge referenceItemEdge: referenceItemEdges) {
-            equation.insertTerm(variableMap.get(referenceItemEdge.id), -(edgeItemCoefficient / referenceItemCoefficient));
-        }
-
-        equations.add(equation);
-
-        // Applies proportional split between multiple edges of same item
-        // i take first edge as reference variable choice could be any edge
-        // input can be proportional only if there are more than 1 inputs
-        // else first input is 100 percent
-        if(itemEdges.size() > 1){
-            addEquationsForProportionalInputFlow(itemEdges, variableMap, equations);
-        }
-
-    }
-
-    private static void addEquationsForProportionalInputFlow(List<Edge> edges, Map<Long, Variable> variableMap, List<Equation> equations) {
-        // assume first edge is referenceEdge
-        Edge referenceEdge = edges.getFirst();
-        Variable referenceVariable = variableMap.get(referenceEdge.id);
-        double referenceWight = referenceEdge.weight;
-        Equation equation;
-
-        double weightSum = edges.stream().mapToDouble(edge -> edge.weight).sum();
-        for (Edge edge : edges.subList(1, edges.size())) {
-            equation = new Equation();
-            equation.insertTerm(variableMap.get(edge.id), referenceWight / weightSum);
-            equation.insertTerm(referenceVariable, -(edge.weight / weightSum));
-
+            double itemEdgeCoefficient = recipe.inputMaterials.get(inputEdge.item);
+            equation.insertTerm(variableMap.get(inputEdge.id), 1);
+            equation.insertTerm(refreceVariable, -(itemEdgeCoefficient / referenceVariableCoefficient));
+            System.out.println(equation);
+            System.out.println();
             equations.add(equation);
         }
+
+        for (Edge outputEdge : outputEdges) {
+            if(outputEdge.equals(primaryOutputEdge)) continue;
+            Equation equation = new Equation();
+
+            if(!recipe.outputMaterials.containsKey(outputEdge.item)){
+                throw new RuntimeException("Output Item " + outputEdge.item + "not found in output edges");
+            }
+
+            double itemEdgeCoefficient = recipe.outputMaterials.get(outputEdge.item);
+            equation.insertTerm(variableMap.get(outputEdge.id), 1);
+            equation.insertTerm(refreceVariable, -(itemEdgeCoefficient / referenceVariableCoefficient));
+            System.out.println(equation);
+            System.out.println();
+            equations.add(equation);
+        }
+        return equations;
     }
 
     private static Map<Item, List<Edge>> groupEdgesByItem(List<Edge> edges){
