@@ -2,8 +2,6 @@ package org.example.graph;
 
 import org.example.factory.Item;
 
-import java.util.Objects;
-
 public class Edge {
 
     private static long ID_COUNTER = 0;

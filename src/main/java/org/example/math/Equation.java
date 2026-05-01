@@ -1,7 +1,5 @@
 package org.example.math;
 
-import org.example.util.Pair;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;

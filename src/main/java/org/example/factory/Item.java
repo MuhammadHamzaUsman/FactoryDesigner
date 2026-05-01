@@ -1,7 +1,5 @@
 package org.example.factory;
 
-import org.example.graph.Node;
-
 import java.util.Objects;
 
 public class Item {

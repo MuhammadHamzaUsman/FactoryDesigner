@@ -164,10 +164,4 @@ public class GraphToLinearSystem {
         }
         return equations;
     }
-
-    private static Map<Item, List<Edge>> groupEdgesByItem(List<Edge> edges){
-        return edges.stream().collect(
-            Collectors.groupingBy(edge -> edge.item)
-        );
-    }
 }

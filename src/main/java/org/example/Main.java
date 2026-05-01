@@ -12,7 +12,6 @@ import org.example.util.Pair;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 public class Main {
     static Map<String, Item> items = new HashMap<>();
@@ -62,36 +61,35 @@ public class Main {
                 items.get("Frame")
         ));
 
-        // creating node
-//        Node recycler = new TransformationNode(recipes.get("Iron Recycling"));
+//         creating node
+        Node recycler = new TransformationNode(recipes.get("Iron Recycling"));
         Node source1 = new SourceNode(0, items.get("Iron Ore"));
-//        Node source2 = new SourceNode(0, items.get("Iron Ore"));
+        Node source2 = new SourceNode(0, items.get("Iron Ore"));
         Node smelter = new TransformationNode(recipes.get("Iron Smelting"));
         Node constructor1 = new TransformationNode(recipes.get("Iron Plates"));
         Node constructor2 = new TransformationNode(recipes.get("Iron Light Frames"));
         Node frameSink = new SinkNode(0.0, items.get("Frame"));
-        List<Node> nodes = List.of(source1, smelter, constructor1, constructor2, frameSink/*, recycler, source2*/);
+        List<Node> nodes = List.of(source1, smelter, constructor1, constructor2, frameSink, recycler, source2);
 
         // connecting them
-
         Edge src1Sem = new Edge(source1, items.get("Iron Ore"), smelter);
-//        Edge src2Sem = new Edge(source2, items.get("Iron Ore"), smelter);
+        Edge src2Sem = new Edge(source2, items.get("Iron Ore"), smelter);
         Edge smeCons1 = new Edge(smelter, items.get("Iron Ingot"), constructor1);
         Edge cons1Cons2 = new Edge(constructor1, items.get("Iron Plate"), constructor2);
         Edge screwCons2 = new Edge(null, items.get("Iron Screw"), constructor2);
         Edge cons2snk1Frame = new Edge(constructor2, items.get("Frame"), frameSink);
-//        Edge cons2snk2Frame = new Edge(constructor2, items.get("Frame"), frameSink);
-//        Edge cons2RecycleScrap = new Edge(constructor2, items.get("Scrap"), recycler);
-//        Edge recycleSme = new Edge(recycler, items.get("Iron Ore"), smelter);
-        List<Edge> edges = List.of(src1Sem/*, src2Sem, cons2snk2Frame, cons2RecycleScrap, recycleSme*/, smeCons1, cons1Cons2, cons2snk1Frame, screwCons2);
+        Edge cons2snk2Frame = new Edge(constructor2, items.get("Frame"), frameSink);
+        Edge cons2RecycleScrap = new Edge(constructor2, items.get("Scrap"), recycler);
+        Edge recycleSme = new Edge(recycler, items.get("Iron Ore"), smelter);
+        List<Edge> edges = List.of(src1Sem, src2Sem, cons2snk2Frame, cons2RecycleScrap, recycleSme, smeCons1, cons1Cons2, cons2snk1Frame, screwCons2);
 
         cons2snk1Frame.weight = 1;
-//        cons2snk2Frame.weight = 1;
+        cons2snk2Frame.weight = 1;
 
         graph.edges.addAll(edges);
         graph.nodes.addAll(nodes);
 
-        Pair<LinearSystem, Map<Long, Variable>> pair = GraphToLinearSystem.generateLinearSystem(graph);
+        pair = GraphToLinearSystem.generateLinearSystem(graph);
         LinearSystem linearSystem = pair.first;
         Map<Long, Variable> edgeVariableMap = pair.second;
 
