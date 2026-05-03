@@ -1,6 +1,5 @@
 package org.example.graph;
 
-import org.example.factory.Item;
 import org.example.factory.Recipe;
 import org.example.math.Equation;
 import org.example.math.LinearSystem;
@@ -8,7 +7,6 @@ import org.example.math.Variable;
 import org.example.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GraphToLinearSystem {
     public static Pair<LinearSystem, Map<Long, Variable>> generateLinearSystem(Graph graph){

@@ -13,15 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Main {
+public class Test {
     static Map<String, Item> items = new HashMap<>();
     static Map<String, Recipe> recipes = new HashMap<>();
-    static Graph graph = new Graph();
-    private static Pair<LinearSystem, Map<Long, Variable>> pair;
-
-    public static void main() {
-        testSimpleLoop();
-    }
 
     public static void hello() {
         // creating Items
@@ -86,10 +80,12 @@ public class Main {
         cons2snk1Frame.weight = 1;
         cons2snk2Frame.weight = 1;
 
+        Graph graph = new Graph();
+
         graph.edges.addAll(edges);
         graph.nodes.addAll(nodes);
 
-        pair = GraphToLinearSystem.generateLinearSystem(graph);
+        Pair<LinearSystem, Map<Long, Variable>> pair = GraphToLinearSystem.generateLinearSystem(graph);
         LinearSystem linearSystem = pair.first;
         Map<Long, Variable> edgeVariableMap = pair.second;
 

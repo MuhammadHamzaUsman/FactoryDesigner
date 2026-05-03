@@ -1,21 +1,33 @@
 plugins {
+    application
     id("java")
+    kotlin("jvm") version "2.0.0" apply false
+    id("org.jetbrains.compose") version "1.6.10" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" apply false
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        google()
+    }
+}
+
+subprojects {
+    plugins.withType<org.jetbrains.kotlin.gradle.plugin.KotlinBasePluginWrapper> {
+        extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
+            jvmToolchain(21)
+        }
+    }
+}
+
+application {
+    mainClass.set("org.example.Main")
 }
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation("org.apache.commons:commons-math3:3.6.1")
-}
-
-tasks.test {
-    useJUnitPlatform()
+    implementation(project(":ui"))
 }
