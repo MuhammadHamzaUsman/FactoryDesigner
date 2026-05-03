@@ -33,6 +33,7 @@ public class Test {
         // creating Recipe
         recipes.put("Iron Recycling", new Recipe(
                 "Iron Recycling",
+                "Cons 1",
                 Map.of(items.get("Scrap"), 2.0),
                 Map.of(items.get("Iron Ore"), 1.0),
                 items.get("Iron Ore")
@@ -40,6 +41,7 @@ public class Test {
 
         recipes.put("Iron Smelting", new Recipe(
                 "Iron Smelting",
+                "Cons 1",
                 Map.of(items.get("Iron Ore"), 2.0),
                 Map.of(items.get("Iron Ingot"), 1.0),
                 items.get("Iron Ingot")
@@ -47,6 +49,7 @@ public class Test {
 
         recipes.put("Iron Plates", new Recipe(
                 "Iron Plates",
+                "Cons 1",
                 Map.of(items.get("Iron Ingot"), 4.0),
                 Map.of(items.get("Iron Plate"), 3.0),
                 items.get("Iron Plate")
@@ -54,6 +57,7 @@ public class Test {
 
         recipes.put("Iron Light Frames", new Recipe(
                 "Iron Light Frames",
+                "Cons 1",
                 Map.of(items.get("Iron Plate"), 6.0, items.get("Iron Screw"), 16.0),
                 Map.of(items.get("Frame"), 2.0, items.get("Scrap"), 4.0),
                 items.get("Frame")
@@ -111,6 +115,7 @@ public class Test {
 
         recipes.put("Iron Recycling", new Recipe(
                 "Iron Recycling",
+                "Cons 1",
                 Map.of(item, 2.0),
                 Map.of(item, 1.0),
                 item
@@ -118,6 +123,7 @@ public class Test {
 
         recipes.put("Iron Waster", new Recipe(
                 "Iron Waster",
+                "Cons 2",
                 Map.of(item, 1.0),
                 Map.of(item, 2.0),
                 item

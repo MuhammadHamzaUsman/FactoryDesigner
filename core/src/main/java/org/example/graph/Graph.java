@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class Graph {
-    public final Set<Edge> edges;
+    public final Map<Long, Edge> edgesIdMap;
 
     public final Map<Long, EdgeHolder> nodeEdgeMap;
     public final Map<Long, Node> nodeIdMap;
@@ -15,7 +15,7 @@ public class Graph {
         this(List.of());
     }
     public Graph(Collection<Edge> edges) {
-        this.edges = new HashSet<>();
+        this.edgesIdMap = new HashMap<>();
         this.nodeEdgeMap = new HashMap<>();
         this.nodeIdMap = new HashMap<>();
 
@@ -25,7 +25,8 @@ public class Graph {
     }
 
     public boolean addEdge(Edge edge){
-        if(!edges.add(edge)) return false;
+        if(edgesIdMap.containsKey(edge.id)) return false;
+        edgesIdMap.put(edge.id, edge);
 
         nodeIdMap.computeIfAbsent( edge.source.id, id -> {
             nodeEdgeMap.putIfAbsent(id, new EdgeHolder());
@@ -44,7 +45,8 @@ public class Graph {
     }
 
     public List<Node> removeEdge(Edge edge){
-        if(!edges.remove(edge)) return null;
+        if(!edgesIdMap.containsKey(edge.id)) return null;
+        edgesIdMap.remove(edge.id);
 
         List<Node> removedNodes = new ArrayList<>();
 
@@ -73,8 +75,16 @@ public class Graph {
         return nodeIdMap.values();
     }
 
-    public Set<Edge> getEdges(){
-        return edges;
+    public Collection<Edge> getEdges(){
+        return edgesIdMap.values();
+    }
+
+    public Node getNode(long nodeId){
+        return nodeIdMap.get(nodeId);
+    }
+
+    public Edge getEdge(long edgeId){
+        return edgesIdMap.get(edgeId);
     }
 
     public int nodeCount(){
@@ -82,7 +92,7 @@ public class Graph {
     }
 
     public int edgeCount(){
-        return edges.size();
+        return edgesIdMap.size();
     }
 
     public boolean containsNode(long nodeId) {
@@ -95,7 +105,7 @@ public class Graph {
 
 
     public boolean containsEdge(Edge edge) {
-        return edges.contains(edge);
+        return edgesIdMap.containsKey(edge);
     }
 
     public Set<Edge> getOutputEdges(long nodeId){
@@ -133,7 +143,7 @@ public class Graph {
     }
 
     public void forEachEdge(Consumer<Edge> action){
-        edges.forEach(action);
+        edgesIdMap.values().forEach(action);
     }
 
     public void forEachOutputEdge(long nodeId, Consumer<Edge> action){
@@ -172,7 +182,7 @@ public class Graph {
     @Override
     public String toString() {
         return "Graph{" +
-                "edges=" + edges +
+                "edgesIdMap=" + edgesIdMap +
                 ", nodeEdgeMap=" + nodeEdgeMap +
                 ", nodeIdMap=" + nodeIdMap +
                 '}';

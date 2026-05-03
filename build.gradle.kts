@@ -6,7 +6,6 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false
 }
 
-
 subprojects {
     repositories {
         mavenCentral()
@@ -31,5 +30,5 @@ subprojects {
 }
 
 application {
-    mainClass.set("org.example.Main")
+    mainClass.set("com.factorydesigner.ui.MainKt")
 }

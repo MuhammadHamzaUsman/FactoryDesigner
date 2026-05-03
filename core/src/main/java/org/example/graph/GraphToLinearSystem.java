@@ -21,7 +21,7 @@ public class GraphToLinearSystem {
         List<Edge> outputEdges;
         List<Equation> equation;
 
-        Map<Long, Variable> variableMapping = initializeVariableMapping(graph.edges);
+        Map<Long, Variable> variableMapping = initializeVariableMapping(graph.getEdges());
 
         List<Node> nodes = graph.getNodes().stream().sorted(Comparator.comparing(node -> node.id)).toList();
 
@@ -65,7 +65,7 @@ public class GraphToLinearSystem {
         return new Pair<>(linearSystem, variableMapping);
     }
 
-    private static Map<Long, Variable> initializeVariableMapping(Set<Edge> edges){
+    private static Map<Long, Variable> initializeVariableMapping(Collection<Edge> edges){
         Map<Long, Variable> variableMapping = HashMap.newHashMap(edges.size());
 
         for (Edge edge : edges) {
