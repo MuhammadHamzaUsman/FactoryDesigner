@@ -1,4 +1,4 @@
-package org.example.graph;
+package org.example.graph.node;
 
 import org.example.factory.Item;
 
@@ -7,6 +7,7 @@ public class SinkNode extends Node {
     Item item;
 
     public SinkNode(double sinkRate, Item item) {
+        super(NodeType.SINK);
         this.sinkRate = sinkRate;
         this.item = item;
     }

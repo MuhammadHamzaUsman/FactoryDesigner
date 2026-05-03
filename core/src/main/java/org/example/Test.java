@@ -3,6 +3,10 @@ package org.example;
 import org.example.factory.Item;
 import org.example.factory.Recipe;
 import org.example.graph.*;
+import org.example.graph.node.Node;
+import org.example.graph.node.SinkNode;
+import org.example.graph.node.SourceNode;
+import org.example.graph.node.TransformationNode;
 import org.example.math.Equation;
 import org.example.math.LinearSystem;
 import org.example.math.LinearSystemSolver;
@@ -80,10 +84,7 @@ public class Test {
         cons2snk1Frame.weight = 1;
         cons2snk2Frame.weight = 1;
 
-        Graph graph = new Graph();
-
-        graph.edges.addAll(edges);
-        graph.nodes.addAll(nodes);
+        Graph graph = new Graph(edges);
 
         Pair<LinearSystem, Map<Long, Variable>> pair = GraphToLinearSystem.generateLinearSystem(graph);
         LinearSystem linearSystem = pair.first;
@@ -136,9 +137,7 @@ public class Test {
         B_to_C.weight = 1;
         C_to_A.weight = 1;
 
-        Graph graph = new Graph();
-        graph.nodes.addAll(List.of(A_node, B_node, C_node));
-        graph.edges.addAll(List.of(A_to_B, B_to_C, C_to_A));
+        Graph graph = new Graph(List.of(A_to_B, B_to_C, C_to_A));
 
         Pair<LinearSystem, Map<Long, Variable>> result =
                 GraphToLinearSystem.generateLinearSystem(graph);
@@ -159,7 +158,7 @@ public class Test {
         System.out.println(a + " " + b + " " + c);
 
         System.out.println(10.0 + " " + a + " " + 1e-6);
-        System.out.println(10.0 + " " + b + " " + 1e-6);
+        System.out.println(20.0 + " " + b + " " + 1e-6);
         System.out.println(10.0 + " " + c + " " + 1e-6);
     }
 }

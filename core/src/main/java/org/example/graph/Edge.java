@@ -1,6 +1,7 @@
 package org.example.graph;
 
 import org.example.factory.Item;
+import org.example.graph.node.Node;
 
 public class Edge {
 

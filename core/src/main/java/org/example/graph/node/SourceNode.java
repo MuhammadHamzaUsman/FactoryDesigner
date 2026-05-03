@@ -1,4 +1,4 @@
-package org.example.graph;
+package org.example.graph.node;
 
 import org.example.factory.Item;
 
@@ -7,6 +7,7 @@ public class SourceNode extends Node{
     Item item;
 
     public SourceNode(double productionRate, Item item) {
+        super(NodeType.SOURCE);
         this.productionRate = productionRate;
         this.item = item;
     }

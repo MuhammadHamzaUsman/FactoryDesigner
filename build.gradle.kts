@@ -1,33 +1,35 @@
 plugins {
     application
     id("java")
-    kotlin("jvm") version "2.0.0" apply false
+    kotlin("jvm") version "2.0.21" apply false
     id("org.jetbrains.compose") version "1.6.10" apply false
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false
 }
 
-allprojects {
+
+subprojects {
     repositories {
         mavenCentral()
         google()
     }
-}
 
-subprojects {
-    plugins.withType<org.jetbrains.kotlin.gradle.plugin.KotlinBasePluginWrapper> {
+    // Force Kotlin JVM 21
+    plugins.withId("org.jetbrains.kotlin.jvm") {
         extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
             jvmToolchain(21)
+        }
+    }
+
+    // Force Java 21 too (IMPORTANT FIX)
+    plugins.withId("java") {
+        extensions.configure<org.gradle.api.plugins.JavaPluginExtension> {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            }
         }
     }
 }
 
 application {
     mainClass.set("org.example.Main")
-}
-
-group = "org.example"
-version = "1.0-SNAPSHOT"
-
-dependencies {
-    implementation(project(":ui"))
 }

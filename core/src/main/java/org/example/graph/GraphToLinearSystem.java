@@ -1,11 +1,16 @@
 package org.example.graph;
 
 import org.example.factory.Recipe;
+import org.example.graph.node.MergerNode;
+import org.example.graph.node.Node;
+import org.example.graph.node.SplitterNode;
+import org.example.graph.node.TransformationNode;
 import org.example.math.Equation;
 import org.example.math.LinearSystem;
 import org.example.math.Variable;
 import org.example.util.Pair;
 
+import java.text.CollationElementIterator;
 import java.util.*;
 
 public class GraphToLinearSystem {
@@ -18,49 +23,49 @@ public class GraphToLinearSystem {
 
         Map<Long, Variable> variableMapping = initializeVariableMapping(graph.edges);
 
-        graph.sortNodes();
+        List<Node> nodes = graph.getNodes().stream().sorted(Comparator.comparing(node -> node.id)).toList();
 
-        for (Node node : graph.nodes) {
-            inputEdges = graph.collectInputEdgesOfNode(node);
-            outputEdges = graph.collectOutputEdgesOfNode(node);
+        for (Node node : nodes) {
+            inputEdges = graph.getInputEdges(node.id).stream().toList();
+            outputEdges = graph.getOutputEdges(node.id).stream().toList();
 
-            if(node instanceof MergerNode){
-                if(outputEdges.size() > 1){
-                    throw new RuntimeException("Merger can only hva one output");
+            switch (node) {
+                case MergerNode mergerNode -> {
+                    if (outputEdges.size() > 1) {
+                        throw new RuntimeException("Merger can only hva one output");
+                    }
+
+                    linearSystem.insertEquation(buildEquationsFor(mergerNode, inputEdges, outputEdges.getFirst(), variableMapping));
                 }
+                case SplitterNode splitterNode -> {
+                    if (inputEdges.size() > 1) {
+                        throw new RuntimeException("Merger can only hva one input");
+                    }
 
-                linearSystem.insertEquation(buildEquationsFor((MergerNode) node, inputEdges, outputEdges.getFirst(), variableMapping));
-                continue;
+                    equation = buildEquationsFor(splitterNode, inputEdges.getFirst(), outputEdges, variableMapping);
+
+                    for (Equation inputEquations : equation) {
+                        linearSystem.insertEquation(inputEquations);
+                    }
+                }
+                case TransformationNode transformationNode -> {
+                    equation = buildEquationsFor(transformationNode, inputEdges, outputEdges, variableMapping);
+
+                    for (Equation inputEquations : equation) {
+                        linearSystem.insertEquation(inputEquations);
+                    }
+                }
+                default -> {
+
+                }
             }
 
-            if(node instanceof SplitterNode){
-                if(inputEdges.size() > 1){
-                    throw new RuntimeException("Merger can only hva one input");
-                }
-
-                equation = buildEquationsFor((SplitterNode) node, inputEdges.getFirst(), outputEdges, variableMapping);
-
-                for (Equation inputEquations : equation) {
-                    linearSystem.insertEquation(inputEquations);
-                }
-
-                continue;
-            }
-
-            if(node instanceof TransformationNode){
-
-                equation = buildEquationsFor((TransformationNode) node, inputEdges, outputEdges, variableMapping);
-
-                for (Equation inputEquations : equation) {
-                    linearSystem.insertEquation(inputEquations);
-                }
-            }
         }
 
         return new Pair<>(linearSystem, variableMapping);
     }
 
-    private static Map<Long, Variable> initializeVariableMapping(List<Edge> edges){
+    private static Map<Long, Variable> initializeVariableMapping(Set<Edge> edges){
         Map<Long, Variable> variableMapping = HashMap.newHashMap(edges.size());
 
         for (Edge edge : edges) {

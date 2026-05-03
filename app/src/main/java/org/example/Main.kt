@@ -1,7 +1,7 @@
-package org.example;
+package org.example
 
-public class Main {
-    static void main() {
-        System.out.println("Heel");
-    }
-}
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+
+
+fun main() = main()
