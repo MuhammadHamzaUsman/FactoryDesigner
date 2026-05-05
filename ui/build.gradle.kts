@@ -27,6 +27,7 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.runtime)
                 implementation(compose.components.resources)
+                implementation(compose.components.uiToolingPreview)
 
                 implementation(project(":core"))
             }

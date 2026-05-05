@@ -6,13 +6,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.example.compose.AppTheme
 import org.example.factory.Item
-import org.example.factory.Recipe
-import org.example.graph.node.NodeType
-import org.example.graph.node.TransformationNode
 import ui.model.Camera
 import ui.model.UiEdge
-import ui.model.UiNode
-import ui.screen.NodeCard
+import ui.screen.ItemColumn
 import ui.state.GraphEditorLayoutState
 
 val layout = GraphEditorLayoutState(
@@ -30,31 +26,21 @@ val layout = GraphEditorLayoutState(
     ),
     camera = Camera(Offset.Zero, mutableFloatStateOf(1f).value)
 )
-val iron = Item("Iron")
-val scrap = Item("Scrap")
 
 fun main() = application {
-    AppTheme {
-        Window(
-            onCloseRequest = ::exitApplication,
-            title = "Test App"
-        ) {
-
-            NodeCard(
-                uiNode = UiNode(
-                    id = 0,
-                    position = Offset(50f, 50f),
-                    type = NodeType.TRANSFORMATION
-                ),
-                node = TransformationNode(
-                    Recipe(
-                        "Iron Waster",
-                        "Constructor",
-                        mutableMapOf(iron to 1.0),
-                        mutableMapOf(scrap to 4.0),
-                        scrap
-                    )
-                ),
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "Test App"
+    ) {
+        AppTheme {
+            ItemColumn(
+                LinkedHashMap<Item, Double?>().apply {
+                    this[Item("Iron")] = 10.0
+                    this[Item("Scrap")] = 30.0
+                    this[Item("Water")] = 50.0
+                    this[Item("Heat")] = 19.0
+                },
+                onValueChange = {}
             )
         }
     }
