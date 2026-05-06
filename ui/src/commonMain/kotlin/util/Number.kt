@@ -18,5 +18,3 @@ fun Double.round(roundUpTo: Int): Double{
 
     return (this * base).roundToInt() / base
 }
-
-fun Offset.toIntOffset() = IntOffset(x.toInt(), y.toInt());
