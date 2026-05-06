@@ -5,7 +5,7 @@ import androidx.compose.ui.geometry.Offset
 data class Camera(
     val offset: Offset,
     var zoom: Float,
-    var zoomSensitivity: Float = 0.5f,
+    var zoomSensitivity: Float = 1.09f,
     val zoomMin: Float = 0.5f,
     val zoomMax: Float = 10f
 )

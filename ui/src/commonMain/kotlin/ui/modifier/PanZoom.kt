@@ -1,6 +1,5 @@
 package ui.modifier
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -8,7 +7,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import ui.logic.GraphEditorLogic
 
-fun Modifier.panZoom(controller: GraphEditorLogic) = pointerInput(1){
+fun Modifier.panZoom(controller: GraphEditorLogic) = pointerInput(Unit){
     awaitPointerEventScope {
         var event: PointerEvent
         while (true){
@@ -17,11 +16,9 @@ fun Modifier.panZoom(controller: GraphEditorLogic) = pointerInput(1){
             when(event.type) {
                 PointerEventType.Scroll -> controller.updateZoom(
                     scrollDelta = event.changes.first().scrollDelta.y,
-                    cursorPositon = event.changes.first().position
+                    cursor = event.changes.first().position
                 )
             }
         }
     }
-}.pointerInput(2){
-    detectDragGestures { _, dragAmount -> controller.updateCameraPosition(dragAmount) }
-}
+}.drag(controller = controller){ updateCameraPosition(it) }

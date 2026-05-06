@@ -1,5 +1,7 @@
 package util
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntOffset
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -16,3 +18,5 @@ fun Double.round(roundUpTo: Int): Double{
 
     return (this * base).roundToInt() / base
 }
+
+fun Offset.toIntOffset() = IntOffset(x.toInt(), y.toInt());
