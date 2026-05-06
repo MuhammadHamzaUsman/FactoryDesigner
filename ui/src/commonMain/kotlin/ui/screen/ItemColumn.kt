@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import org.example.factory.Item
 import org.example.graph.node.NodeType
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import ui.composables.LabelTextField
 import ui.model.Camera
 import ui.model.UiNode
 import util.round
@@ -43,14 +44,14 @@ fun ItemColumn(
                 onValueChange = { onValueChange(uiNode, item, it.toDoubleOrNull(), nodePos) },
                 modifier = Modifier
                     .width(150.dp)
-                    .onGloballyPositioned{ layoutCoordinates ->
+                    .onGloballyPositioned { layoutCoordinates ->
                         val position = layoutCoordinates.positionInWindow()
                         val size = layoutCoordinates.size
                         nodePos = Offset(
                             position.x + size.width / 2,
                             position.y + size.height / 2
-                    ).screenToWorld(camera)
-                }
+                        ).screenToWorld(camera)
+                    }
             )
         }
     }

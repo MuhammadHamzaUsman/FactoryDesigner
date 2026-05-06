@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.example.compose.AppTheme
 import org.example.factory.Item
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import ui.composables.LabelTextField
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
 import ui.modifier.drag
