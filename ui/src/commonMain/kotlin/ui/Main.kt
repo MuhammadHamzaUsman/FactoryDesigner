@@ -23,17 +23,7 @@ fun main() {
         ) {
             AppTheme {
                 MachineSelectionMenu(
-                    Machine(
-                        LinkedHashSet<Recipe>().apply {
-                            Recipe(
-                                "Something",
-                                nameFromId(0L),
-                                inputMaterial(0L),
-                                outputMaterial(0L),
-                                ironIngot
-                            )
-                        }
-                    )
+                    controller
                 )
 //                GraphScreen(controller)
             }

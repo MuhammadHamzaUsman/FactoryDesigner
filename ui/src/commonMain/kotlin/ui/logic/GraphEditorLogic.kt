@@ -1,15 +1,19 @@
 package ui.logic
 
 import androidx.compose.ui.geometry.Offset
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import itemAndRecipe
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
+import org.example.factory.Recipe
 import testState
+import ui.model.FilterOption
 import kotlin.math.pow
 
 class GraphEditorLogic {
     private var _state = MutableStateFlow(testState)
     val state = _state.asStateFlow()
+
+    private val itemAndRecipeState = itemAndRecipe
 
     fun updateZoom(scrollDelta: Float, cursor: Offset){
         _state.update { state ->
@@ -49,7 +53,6 @@ class GraphEditorLogic {
         }
     }
 
-
     fun updateNodePosition(nodeId: Long, delta: Offset){
         _state.update { state ->
             val node = state.nodes[nodeId] ?: return@update state
@@ -62,6 +65,49 @@ class GraphEditorLogic {
                 }
             )
         }
+    }
+
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    private val _filterOption = MutableStateFlow<FilterOption?>(null)
+    val filterOption = _filterOption.asStateFlow()
+
+    fun updateSearchText(newSearchText: String){
+        _searchText.update { newSearchText }
+    }
+
+    fun updateFilterOption(filterOption: FilterOption?){
+        _filterOption.update { filterOption }
+    }
+
+    @OptIn(FlowPreview::class)
+    val filteredItems = searchText
+        .debounce(500)
+        .combine(filterOption){ searchText, filterOption ->
+            if(searchText.isBlank() || filterOption == null) emptyList<Recipe>()
+            else getListOfRecipe(searchText, filterOption)
+        }
+
+    fun getListOfRecipe(search: String, filterOption: FilterOption): List<Recipe> {
+        return when(filterOption){
+            FilterOption.RECIPE -> itemAndRecipeState.recipes
+                .filter {(_, recipe) ->
+                    recipe.name.lowercase().contains(search.lowercase())
+                }
+
+            FilterOption.INPUT_MATERIAL -> itemAndRecipeState.recipes
+                .filter {(_, recipe) ->
+                    recipe.inputMaterials.keys.any { it.name.lowercase().contains(search.lowercase()) }
+                }
+
+            FilterOption.OUTPUT_MATERIAL -> itemAndRecipeState.recipes
+                .filter {(_, recipe) ->
+                    recipe.outputMaterials.keys.any { it.name.lowercase().contains(search.lowercase()) }
+                }
+        }
+        .values
+        .toList()
     }
 }
 

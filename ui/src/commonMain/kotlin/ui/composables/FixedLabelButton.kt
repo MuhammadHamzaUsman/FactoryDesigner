@@ -1,6 +1,7 @@
 package ui.composables
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,11 +21,12 @@ fun FixedLabelButton(
     Text(
         text = fixedLabel,
         style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onBackground,
-        lineHeight = 16.sp,
+        color = MaterialTheme.colorScheme.onTertiary,
+        fontSize = 18.sp,
+        lineHeight = 18.sp,
         modifier = modifier
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.tertiary,
                 shape = RoundedCornerShape(8.dp)
             )
             .padding(4.dp)

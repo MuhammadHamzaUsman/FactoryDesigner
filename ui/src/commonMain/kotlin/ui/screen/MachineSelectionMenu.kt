@@ -3,6 +3,10 @@ package ui.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
@@ -14,27 +18,29 @@ import com.example.compose.AppTheme
 import inputMaterial
 import ironIngot
 import nameFromId
-import org.example.factory.Machine
 import org.example.factory.Recipe
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import outputMaterial
+import testState
 import ui.composables.FixedLabelButton
 import ui.composables.ThemedRadioButton
+import ui.logic.GraphEditorLogic
 import ui.model.FilterOption
 
 @Composable
 fun MachineSelectionMenu(
-    machine: Machine,
+    controller: GraphEditorLogic,
     modifier: Modifier = Modifier
 ) {
-    var searchStr by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf<FilterOption?>(null) }
+    val searchStr by controller.searchText.collectAsState()
+    val selectedFilter by controller.filterOption.collectAsState()
+    val filteredRecipes by controller.filteredItems.collectAsState(emptyList())
 
     Column(
         modifier = modifier
             .size(500.dp)
             .background(
-                color = MaterialTheme.colorScheme.background,
+                color = MaterialTheme.colorScheme.surfaceContainer,
                 shape = RoundedCornerShape(12.dp)
             )
             .border(
@@ -46,8 +52,9 @@ fun MachineSelectionMenu(
     ) {
         TextField(
             value = searchStr,
-            onValueChange = {str -> searchStr = str},
+            onValueChange = controller::updateSearchText,
             textStyle = MaterialTheme.typography.bodyMedium,
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
                 .border(
@@ -61,51 +68,60 @@ fun MachineSelectionMenu(
         Column(
             modifier = Modifier.padding(vertical = 8.dp)
         ) {
-            Row {
+            Row(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(4.dp)
+            ) {
                 for (option in FilterOption.entries) {
                     ThemedRadioButton(
                         label = option.text,
                         selected = selectedFilter == option,
-                        spacing = 0.dp,
-                        onClick = {
-                            if (selectedFilter == option) {
-                                selectedFilter = null
-                            } else {
-                                selectedFilter = option
-                            }
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(4.dp)),
+                    ) {
+                        if (selectedFilter == option) {
+                            controller.updateFilterOption(null)
+                        } else {
+                            controller.updateFilterOption(option)
                         }
-                    )
+                    }
                 }
             }
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(start = 14.dp)
             ) {
                 FixedLabelButton("Splitter")
                 FixedLabelButton("Merger")
+            }
+        }
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ){
+            items(filteredRecipes, key = Recipe::id){
+                RecipeCard(it)
             }
         }
     }
 }
 
 
+
 @Preview
 @Composable
 fun PreviewMachineSelectionMenu(){
     AppTheme {
-        MachineSelectionMenu(
-            Machine(
-                LinkedHashSet<Recipe>().apply {
-                    Recipe(
-                        "Something",
-                        nameFromId(0L),
-                        inputMaterial(0L),
-                        outputMaterial(0L),
-                        ironIngot
-                    )
-                }
-            )
-        )
+        MachineSelectionMenu(GraphEditorLogic())
     }
 }
