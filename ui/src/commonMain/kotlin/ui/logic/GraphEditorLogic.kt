@@ -67,11 +67,25 @@ class GraphEditorLogic {
         }
     }
 
+    private val _isRecipeMenuDisplayed = MutableStateFlow(false)
+    val isRecipeMenuDisplayed = _isRecipeMenuDisplayed.asStateFlow()
+
+    private val _recipeMenuOffset = MutableStateFlow(Offset(0f, 0f))
+    val recipeMenuOffset = _recipeMenuOffset.asStateFlow()
+
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
     private val _filterOption = MutableStateFlow<FilterOption?>(null)
     val filterOption = _filterOption.asStateFlow()
+
+    fun updateRecipeMenuOffset(offset: Offset){
+        _recipeMenuOffset.update { it + offset }
+    }
+
+    fun setRecipeMenuDisplayed(displayed: Boolean){
+        _isRecipeMenuDisplayed.update { displayed }
+    }
 
     fun updateSearchText(newSearchText: String){
         _searchText.update { newSearchText }

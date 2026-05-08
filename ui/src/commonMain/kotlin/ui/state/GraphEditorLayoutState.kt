@@ -1,6 +1,5 @@
 package ui.state
 
-import org.example.data.ItemAndRecipeState
 import ui.model.Camera
 import ui.model.UiEdge
 import ui.model.UiNode
