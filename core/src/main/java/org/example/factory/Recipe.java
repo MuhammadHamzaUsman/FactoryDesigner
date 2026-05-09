@@ -1,5 +1,6 @@
 package org.example.factory;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Recipe {
@@ -9,12 +10,12 @@ public class Recipe {
     public String name;
 
     public String machineName;
-    public Map<Item, Double> inputMaterials;
-    public Map<Item, Double> outputMaterials;
+    public LinkedHashMap<Item, Double> inputMaterials;
+    public LinkedHashMap<Item, Double> outputMaterials;
 
     public Item primaryOutput;
 
-    public Recipe(String name, String machineName, Map<Item, Double> inputMaterials, Map<Item, Double> outputMaterials, Item primaryOutput) {
+    public Recipe(String name, String machineName, LinkedHashMap<Item, Double> inputMaterials, LinkedHashMap<Item, Double> outputMaterials, Item primaryOutput) {
         if(!outputMaterials.containsKey(primaryOutput)){
             throw new RuntimeException("Primary Output Item not found in output material map.");
         }

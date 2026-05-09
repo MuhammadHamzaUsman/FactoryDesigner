@@ -22,10 +22,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.factory.Recipe
+import org.example.graph.node.NodeType
+import ui.logic.GraphEditorLogic
+import ui.modifier.clickableWithOffset
 
 @Composable
 fun RecipeCard(
     recipe: Recipe,
+    controller: GraphEditorLogic,
     modifier: Modifier = Modifier
 ){
     Card(
@@ -38,6 +42,9 @@ fun RecipeCard(
                 color = MaterialTheme.colorScheme.outline,
                 width = 2.dp,
                 shape = RoundedCornerShape(8.dp)
+            )
+            .clickableWithOffset(
+                onClick = { controller.addNode(recipe, NodeType.TRANSFORMATION, it) }
             )
     ) {
         Column(

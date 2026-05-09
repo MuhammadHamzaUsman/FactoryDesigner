@@ -14,6 +14,7 @@ import org.example.math.Variable;
 import org.example.util.Pair;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,32 +35,32 @@ public class Test {
         recipes.put("Iron Recycling", new Recipe(
                 "Iron Recycling",
                 "Cons 1",
-                Map.of(items.get("Scrap"), 2.0),
-                Map.of(items.get("Iron Ore"), 1.0),
+                LinkedHashMapOf(items.get("Scrap"), 2.0),
+                LinkedHashMapOf(items.get("Iron Ore"), 1.0),
                 items.get("Iron Ore")
         ));
 
         recipes.put("Iron Smelting", new Recipe(
                 "Iron Smelting",
                 "Cons 1",
-                Map.of(items.get("Iron Ore"), 2.0),
-                Map.of(items.get("Iron Ingot"), 1.0),
+                LinkedHashMapOf(items.get("Iron Ore"), 2.0),
+                LinkedHashMapOf(items.get("Iron Ingot"), 1.0),
                 items.get("Iron Ingot")
         ));
 
         recipes.put("Iron Plates", new Recipe(
                 "Iron Plates",
                 "Cons 1",
-                Map.of(items.get("Iron Ingot"), 4.0),
-                Map.of(items.get("Iron Plate"), 3.0),
+                LinkedHashMapOf(items.get("Iron Ingot"), 4.0),
+                LinkedHashMapOf(items.get("Iron Plate"), 3.0),
                 items.get("Iron Plate")
         ));
 
         recipes.put("Iron Light Frames", new Recipe(
                 "Iron Light Frames",
                 "Cons 1",
-                Map.of(items.get("Iron Plate"), 6.0, items.get("Iron Screw"), 16.0),
-                Map.of(items.get("Frame"), 2.0, items.get("Scrap"), 4.0),
+                LinkedHashMapOf(items.get("Iron Plate"), 6.0, items.get("Iron Screw"), 16.0),
+                LinkedHashMapOf(items.get("Frame"), 2.0, items.get("Scrap"), 4.0),
                 items.get("Frame")
         ));
 
@@ -116,16 +117,16 @@ public class Test {
         recipes.put("Iron Recycling", new Recipe(
                 "Iron Recycling",
                 "Cons 1",
-                Map.of(item, 2.0),
-                Map.of(item, 1.0),
+                LinkedHashMapOf(item, 2.0),
+                LinkedHashMapOf(item, 1.0),
                 item
         ));
 
         recipes.put("Iron Waster", new Recipe(
                 "Iron Waster",
                 "Cons 2",
-                Map.of(item, 1.0),
-                Map.of(item, 2.0),
+                LinkedHashMapOf(item, 1.0),
+                LinkedHashMapOf(item, 2.0),
                 item
         ));
 
@@ -167,4 +168,21 @@ public class Test {
         System.out.println(20.0 + " " + b + " " + 1e-6);
         System.out.println(10.0 + " " + c + " " + 1e-6);
     }
+    private static LinkedHashMap<Item, Double> LinkedHashMapOf(Item item, double amount){
+        LinkedHashMap<Item, Double> map = new LinkedHashMap<>();
+        map.put(item, amount);
+
+        return map;
+    }
+
+
+
+    private static LinkedHashMap<Item, Double> LinkedHashMapOf(Item k1, double v1, Item k2, double v2) {
+        LinkedHashMap<Item, Double> map = new LinkedHashMap<>();
+        map.put(k1, v1);
+        map.put(k2, v2);
+
+        return map;
+    }
 }
+

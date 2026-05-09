@@ -3,15 +3,18 @@ import androidx.compose.ui.geometry.Offset
 import org.example.data.ItemAndRecipeState
 import org.example.factory.Item
 import org.example.factory.Recipe
+import org.example.graph.Graph
 import org.example.graph.node.NodeType
+import org.example.graph.node.TransformationNode
 import ui.model.Camera
 import ui.model.UiEdge
 import ui.model.UiNode
 import ui.state.GraphEditorLayoutState
 import java.util.Map
+import kotlin.apply
 
 val testState = GraphEditorLayoutState(
-    nodes = mutableMapOf(
+    nodes = mutableStateMapOf(
         0L to UiNode(
             id = 0,
             position = Offset(10f, 10f),
@@ -54,39 +57,35 @@ fun initItemAndRecipe(): ItemAndRecipeState{
         this[0L] = Recipe(
             "Iron Recycling",
             "Cons 1",
-            Map.of<Item, Double>(items[5L], 2.0),
-            Map.of<Item, Double>(items[0L], 1.0),
+            LinkedHashMap<Item, Double>().apply {this[items[5L]!!] = 2.0},
+            LinkedHashMap<Item, Double>().apply {this[items[0L]!!] = 1.0},
             items[0L]
         )
         this[1L] = Recipe(
             "Iron Smelting",
             "Cons 1",
-            Map.of<Item, Double>(items[0L], 2.0),
-            Map.of<Item, Double>(items[1L], 1.0),
+            LinkedHashMap<Item, Double>().apply {this[items[0L]!!] = 2.0},
+            LinkedHashMap<Item, Double>().apply {this[items[1L]!!] = 1.0},
             items[1L]
         )
         this[2L] = Recipe(
             "Iron Plates",
             "Cons 1",
-            Map.of<Item, Double>(items[1L], 4.0),
-            Map.of<Item, Double>(items[2L], 3.0),
+            LinkedHashMap<Item, Double>().apply {this[items[1L]!!] = 4.0},
+            LinkedHashMap<Item, Double>().apply {this[items[2L]!!] = 3.0},
             items[2L]
         )
         this[3L] = Recipe(
             "Iron Light Frames",
             "Cons 1",
-            Map.of<Item, Double>(
-                items[2L],
-                6.0,
-                items[3L],
-                16.0
-            ),
-            Map.of<Item, Double>(
-                items[4L],
-                2.0,
-                items[5L],
-                4.0
-            ),
+            LinkedHashMap<Item, Double>().apply {
+                this[items[2L]!!] = 6.0
+                this[items[3L]!!] = 16.0
+            },
+            LinkedHashMap<Item, Double>().apply {
+                this[items[4L]!!] = 2.0
+                this[items[5L]!!] = 4.0
+            },
             items[4L]
         )
     }
@@ -107,26 +106,18 @@ fun machineCount(id: Long) = when(id){
     else -> "No"
 }
 
-fun inputMaterial(id: Long) = when(id){
-    0L -> LinkedHashMap<Item, Double?>().apply {
-        this[ironOre] = 3.0
-    }
-    1L -> LinkedHashMap<Item, Double?>().apply {
-        this[ironIngot] = 4.0
-    }
-    else -> LinkedHashMap<Item, Double?>()
-}
-
-fun outputMaterial(id: Long) = when(id){
-    0L -> LinkedHashMap<Item, Double?>().apply {
-        this[ironIngot] = 1.0
-    }
-    1L -> LinkedHashMap<Item, Double?>().apply {
-        this[ironPlate] = 3.0
-    }
-    else -> LinkedHashMap<Item, Double?>()
-}
-
 val ironOre = Item("Iron Ore")
 val ironIngot = Item("Iron Ingot")
 val ironPlate = Item("Iron Plate")
+
+fun initGraph(itemAndRecipeState: ItemAndRecipeState): Graph {
+    val graph = Graph()
+
+    val node1 = TransformationNode(itemAndRecipeState.recipes[0L])
+    val node2 = TransformationNode(itemAndRecipeState.recipes[1L])
+
+    graph.addNode(node1)
+    graph.addNode(node2)
+
+    return graph
+}

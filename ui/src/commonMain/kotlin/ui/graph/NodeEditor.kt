@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -15,11 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
-import inputMaterial
 import machineCount
-import nameFromId
 import org.example.factory.Item
-import outputMaterial
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
 import ui.modifier.panZoom
@@ -47,6 +45,8 @@ fun GraphScreen(
             .fillMaxSize()
             .panZoom(controller)
             .clickable(
+                interactionSource = MutableInteractionSource(),
+                indication = null,
                 onClick = { controller.setRecipeMenuDisplayed(!isRecipeMenuDisplayed) }
             )
             .graphicsLayer {
@@ -65,10 +65,10 @@ fun GraphScreen(
         for ((id, node) in state.nodes) {
             NodeCard(
                 uiNode = node,
-                nodeName = nameFromId(id),
+                nodeName = controller.getNodeName(id),
                 nodeCount = machineCount(id).toString(),
-                inputMaterialCount = inputMaterial(id),
-                outputMaterialCount = outputMaterial(id),
+                inputMaterialCount = controller.getInputMaterials(id) ,
+                outputMaterialCount = controller.getOutputMaterial(id),
                 onMachineCountValueChange = { node: UiNode, d: Double?, offset: Offset -> },
                 onInputMaterialCountChange = { node: UiNode, item: Item, d: Double?, offset: Offset -> },
                 onOutputMaterialCountChange = { node: UiNode, item: Item, d: Double?, offset: Offset -> },

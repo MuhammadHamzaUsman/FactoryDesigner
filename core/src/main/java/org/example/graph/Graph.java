@@ -24,6 +24,11 @@ public class Graph {
         }
     }
 
+    public void addNode(Node node){
+        nodeIdMap.put(node.id, node);
+        nodeEdgeMap.putIfAbsent(node.id, new EdgeHolder());
+    }
+
     public boolean addEdge(Edge edge){
         if(edgesIdMap.containsKey(edge.id)) return false;
         edgesIdMap.put(edge.id, edge);

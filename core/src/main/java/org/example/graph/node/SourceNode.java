@@ -4,7 +4,7 @@ import org.example.factory.Item;
 
 public class SourceNode extends Node{
     double productionRate;
-    Item item;
+    public final Item item;
 
     public SourceNode(double productionRate, Item item) {
         super(NodeType.SOURCE);

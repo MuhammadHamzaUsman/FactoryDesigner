@@ -106,7 +106,7 @@ fun MachineSelectionMenu(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ){
             items(filteredRecipes, key = Recipe::id){
-                RecipeCard(it)
+                RecipeCard(it, controller)
             }
         }
     }

@@ -1,12 +1,22 @@
 package ui.logic
 
 import androidx.compose.ui.geometry.Offset
+import initGraph
 import itemAndRecipe
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
+import org.example.factory.Item
 import org.example.factory.Recipe
+import org.example.graph.node.MergerNode
+import org.example.graph.node.NodeType
+import org.example.graph.node.SinkNode
+import org.example.graph.node.SourceNode
+import org.example.graph.node.SplitterNode
+import org.example.graph.node.TransformationNode
 import testState
 import ui.model.FilterOption
+import ui.model.toUiNode
+import util.linkedHashMapOf
 import kotlin.math.pow
 
 class GraphEditorLogic {
@@ -54,16 +64,14 @@ class GraphEditorLogic {
     }
 
     fun updateNodePosition(nodeId: Long, delta: Offset){
+        state.value.nodes
+
         _state.update { state ->
             val node = state.nodes[nodeId] ?: return@update state
 
-            state.copy(
-                nodes = state.nodes.toMutableMap().apply {
-                    this[nodeId] = node.copy(
-                        position = node.position + delta
-                    )
-                }
-            )
+            state.nodes[nodeId] = node.copy( position = node.position + delta )
+
+            state
         }
     }
 
@@ -122,6 +130,52 @@ class GraphEditorLogic {
         }
         .values
         .toList()
+    }
+
+    private val graph = initGraph(itemAndRecipe)
+
+    fun getNodeName(nodeId: Long): String{
+        return when(val node = graph.getNode(nodeId)){
+            is TransformationNode -> node.recipe.name
+            is SplitterNode -> "Splitter"
+            is MergerNode -> "Merger"
+            is SourceNode -> "Source"
+            is SinkNode -> "Sink"
+            else -> "No Name"
+        }
+    }
+
+    fun getInputMaterials(nodeId: Long): LinkedHashMap<Item, Double?> {
+        return when(val node = graph.getNode(nodeId)){
+            is TransformationNode -> node.recipe.inputMaterials
+            is SourceNode -> linkedHashMapOf<Item, Double?>(node.item, null)
+            is MergerNode -> linkedHashMapOf<Item, Double?>(node.item, null)
+            else -> emptyMap
+        }
+    }
+
+    fun getOutputMaterial(nodeId: Long): LinkedHashMap<Item, Double?> {
+        return when(val node = graph.getNode(nodeId)){
+            is TransformationNode -> node.recipe.outputMaterials
+            is SourceNode -> linkedHashMapOf<Item, Double?>(node.item, null)
+            is MergerNode -> linkedHashMapOf<Item, Double?>(node.item, null)
+            else -> emptyMap
+        }
+    }
+
+    fun addNode(recipe: Recipe, type: NodeType, offset: Offset){
+        _state.update { state ->
+            val node = TransformationNode(recipe)
+            graph.addNode(node)
+
+            state.nodes[node.id] = node.toUiNode(offset)
+
+            state
+        }
+    }
+
+    companion object {
+        val emptyMap = LinkedHashMap<Item, Double?>()
     }
 }
 
