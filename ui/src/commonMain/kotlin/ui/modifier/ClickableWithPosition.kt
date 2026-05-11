@@ -6,5 +6,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 
 fun Modifier.clickableWithOffset(onClick: (Offset) -> Unit) = pointerInput(Unit){
-    detectTapGestures(onTap = onClick)
+    detectTapGestures{ localOffset ->
+        onClick(localOffset)
+    }
 }

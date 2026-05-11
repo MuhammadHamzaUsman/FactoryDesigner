@@ -8,12 +8,11 @@ import androidx.compose.material.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.compose.AppTheme
@@ -38,11 +37,9 @@ fun NodeCard(
     onInputMaterialCountChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit,
     onOutputMaterialCountChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit,
     controller: GraphEditorLogic,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    containerCords: LayoutCoordinates?
 ){
-    val state by controller.state.collectAsState()
-    val camera = state.camera
-
     Row(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -59,7 +56,8 @@ fun NodeCard(
         ) {
             ItemColumn(
                 uiNode = uiNode,
-                camera = camera,
+                controller = controller,
+                containerCords = containerCords,
                 items = inputMaterialCount,
                 onValueChange = onInputMaterialCountChange,
                 modifier = Modifier.padding(8.dp)
@@ -121,19 +119,12 @@ fun NodeCard(
         ) {
             ItemColumn(
                 uiNode = uiNode,
-                camera = camera,
+                controller = controller,
+                containerCords = containerCords,
                 items = outputMaterialCount,
                 onValueChange = onOutputMaterialCountChange,
                 modifier = Modifier.padding(8.dp)
             )
         }
-    }
-}
-
-@Preview
-@Composable
-fun CardPreview(){
-    AppTheme {
-
     }
 }

@@ -1,28 +1,31 @@
 package ui.graph
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import machineCount
 import org.example.factory.Item
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
 import ui.modifier.panZoom
+import ui.screen.EdgeDrawer
 import ui.screen.MachineSelectionMenu
 import ui.screen.NodeCard
+import ui.state.GraphMode
+import util.screenToWorld
 import util.toIntOffset
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -32,35 +35,48 @@ fun GraphScreen(
     modifier: Modifier = Modifier
 ){
     val state by controller.state.collectAsState()
+
     val isRecipeMenuDisplayed by controller.isRecipeMenuDisplayed.collectAsState()
     val recipeMenuOffset by controller.recipeMenuOffset.collectAsState()
     val draggableState = rememberDraggable2DState{
         offset -> controller.updateRecipeMenuOffset(offset)
         recipeMenuOffset
     }
+
     val camera = state.camera
+    val mode by controller.graphMode.collectAsState()
+    var layoutCords: LayoutCoordinates? by remember { mutableStateOf(null) }
 
     Box(
         modifier = modifier
             .fillMaxSize()
+            .onGloballyPositioned { layoutCords = it }
             .panZoom(controller)
-            .clickable(
-                interactionSource = MutableInteractionSource(),
-                indication = null,
-                onClick = { controller.setRecipeMenuDisplayed(!isRecipeMenuDisplayed) }
-            )
+            .pointerInput(camera, mode) {
+                detectTapGestures { localOffset ->
+                    val worldOffset = localOffset.screenToWorld(camera)
+
+                    if (mode == GraphMode.EDGE_DRAWING) {
+                        controller.addPointToEdge(worldOffset)
+                    } else {
+                        controller.setRecipeMenuDisplayed(!isRecipeMenuDisplayed)
+                    }
+                }
+            }
             .graphicsLayer {
-                transformOrigin = TransformOrigin(0f, 0f)
                 scaleX = camera.zoom
                 scaleY = camera.zoom
                 translationX = -camera.offset.x * camera.zoom
                 translationY = -camera.offset.y * camera.zoom
+                transformOrigin = TransformOrigin(0f, 0f)
             }
     ){
-        Canvas(
-            contentDescription = "",
-            modifier = modifier.fillMaxSize()
-        ) { }
+        EdgeDrawer(
+            controller = controller,
+            width = 3f,
+            color = Color.Black,
+             modifier = Modifier.fillMaxSize()
+        )
 
         for ((id, node) in state.nodes) {
             NodeCard(
@@ -72,7 +88,8 @@ fun GraphScreen(
                 onMachineCountValueChange = { node: UiNode, d: Double?, offset: Offset -> },
                 onInputMaterialCountChange = { node: UiNode, item: Item, d: Double?, offset: Offset -> },
                 onOutputMaterialCountChange = { node: UiNode, item: Item, d: Double?, offset: Offset -> },
-                controller = controller
+                controller = controller,
+                containerCords = layoutCords,
             )
         }
 

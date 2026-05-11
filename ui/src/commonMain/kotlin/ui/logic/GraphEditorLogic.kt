@@ -1,5 +1,6 @@
 package ui.logic
 
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import initGraph
 import itemAndRecipe
@@ -7,15 +8,13 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import org.example.factory.Item
 import org.example.factory.Recipe
-import org.example.graph.node.MergerNode
-import org.example.graph.node.NodeType
-import org.example.graph.node.SinkNode
-import org.example.graph.node.SourceNode
-import org.example.graph.node.SplitterNode
-import org.example.graph.node.TransformationNode
+import org.example.graph.Edge
+import org.example.graph.node.*
 import testState
 import ui.model.FilterOption
+import ui.model.toUiEdge
 import ui.model.toUiNode
+import ui.state.GraphMode
 import util.linkedHashMapOf
 import kotlin.math.pow
 
@@ -70,6 +69,7 @@ class GraphEditorLogic {
             val node = state.nodes[nodeId] ?: return@update state
 
             state.nodes[nodeId] = node.copy( position = node.position + delta )
+            println("id: $nodeId , ${state.nodes[nodeId]}")
 
             state
         }
@@ -177,5 +177,43 @@ class GraphEditorLogic {
     companion object {
         val emptyMap = LinkedHashMap<Item, Double?>()
     }
+
+    private val _graphMode = MutableStateFlow(GraphMode.NORMAL)
+    val graphMode = _graphMode.asStateFlow()
+
+    fun handleConnectorClick(nodeId: Long, item: Item, offset: Offset){
+        val mode = graphMode.value
+
+        if (mode == GraphMode.NORMAL) {
+            tempEdge = Edge(graph.getNode(nodeId), item, null)
+            pointsList.add(offset)
+
+            _graphMode.update { GraphMode.EDGE_DRAWING }
+
+        } else if (mode == GraphMode.EDGE_DRAWING) {
+            pointsList.add(offset)
+            tempEdge!!.destination = graph.getNode(nodeId)
+            val uiEdge = tempEdge!!.toUiEdge(pointsList.toList())
+
+            _state.update { currentState ->
+                currentState.edges[uiEdge.id] = uiEdge
+
+                currentState.copy(edges = currentState.edges)
+            }
+
+            graph.addEdge(tempEdge)
+            pointsList.clear()
+            tempEdge = null
+            _graphMode.update { GraphMode.NORMAL }
+        }
+    }
+
+    fun addPointToEdge(offset: Offset){
+        pointsList.add(offset)
+    }
+
+    val pointsList = SnapshotStateList<Offset>()
+    private var tempEdge: Edge? = null
+
 }
 

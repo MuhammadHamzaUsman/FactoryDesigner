@@ -7,11 +7,11 @@ public class Edge {
 
     private static long ID_COUNTER = 0;
     public final long id = ID_COUNTER++;
-    public final Node source;
+    public Node source;
 
     public final Item item;
 
-    public final Node destination;
+    public Node destination;
 
     // weight is used when a node have multiple input edges of same item
     // then weight of all edges are added up and the assigned to each edge as

@@ -7,11 +7,8 @@ import org.example.graph.Graph
 import org.example.graph.node.NodeType
 import org.example.graph.node.TransformationNode
 import ui.model.Camera
-import ui.model.UiEdge
 import ui.model.UiNode
 import ui.state.GraphEditorLayoutState
-import java.util.Map
-import kotlin.apply
 
 val testState = GraphEditorLayoutState(
     nodes = mutableStateMapOf(
@@ -29,14 +26,6 @@ val testState = GraphEditorLayoutState(
 
     ),
     edges = mutableStateMapOf(
-        0L to UiEdge(0L, listOf(
-            Offset(1f, 1f),
-            Offset(1f, 10f),
-            Offset(20f, 10f),
-            Offset(20f, 30f),
-            Offset(40f, 30f),
-            Offset(40f, 40f)
-        ))
     ),
     camera = Camera(Offset.Zero, 1f)
 )
