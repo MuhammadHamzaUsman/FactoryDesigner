@@ -14,6 +14,7 @@ import testState
 import ui.model.FilterOption
 import ui.model.toUiEdge
 import ui.model.toUiNode
+import ui.screen.EdgeDrawer
 import ui.state.GraphMode
 import util.linkedHashMapOf
 import kotlin.math.pow
@@ -69,7 +70,18 @@ class GraphEditorLogic {
             val node = state.nodes[nodeId] ?: return@update state
 
             state.nodes[nodeId] = node.copy( position = node.position + delta )
-            println("id: $nodeId , ${state.nodes[nodeId]}")
+
+            graph.forEachInputEdge(nodeId){
+                state.edges[it.id]?.updateLastOffset(delta)
+            }
+
+            graph.forEachOutputEdge(nodeId){
+                state.edges[it.id]?.updateFirstOffset(delta)
+            }
+
+            _state.update { currentState ->
+                currentState.copy(edges = currentState.edges)
+            }
 
             state
         }
@@ -181,31 +193,68 @@ class GraphEditorLogic {
     private val _graphMode = MutableStateFlow(GraphMode.NORMAL)
     val graphMode = _graphMode.asStateFlow()
 
-    fun handleConnectorClick(nodeId: Long, item: Item, offset: Offset){
+    fun handleInputConnectorClick(nodeId: Long, item: Item, offset: Offset){
+        val mode = graphMode.value
+
+        if(mode == GraphMode.NORMAL){
+            tempEdge = Edge(null, item, graph.getNode(nodeId))
+            startEdgeDrawing(offset)
+        }
+        else if (mode == GraphMode.EDGE_DRAWING) {
+            if(tempEdge?.source == null){
+                resetToNormal()
+                return
+            }
+
+            tempEdge!!.destination = graph.getNode(nodeId)
+            endEdgeDrawing(offset, false)
+        }
+    }
+
+    fun handleOutputConnectorClick(nodeId: Long, item: Item, offset: Offset){
         val mode = graphMode.value
 
         if (mode == GraphMode.NORMAL) {
             tempEdge = Edge(graph.getNode(nodeId), item, null)
-            pointsList.add(offset)
-
-            _graphMode.update { GraphMode.EDGE_DRAWING }
-
-        } else if (mode == GraphMode.EDGE_DRAWING) {
-            pointsList.add(offset)
-            tempEdge!!.destination = graph.getNode(nodeId)
-            val uiEdge = tempEdge!!.toUiEdge(pointsList.toList())
-
-            _state.update { currentState ->
-                currentState.edges[uiEdge.id] = uiEdge
-
-                currentState.copy(edges = currentState.edges)
+            startEdgeDrawing(offset)
+        }
+        else if(mode == GraphMode.EDGE_DRAWING){
+            if(tempEdge?.destination == null){
+                resetToNormal()
+                return
             }
 
-            graph.addEdge(tempEdge)
-            pointsList.clear()
-            tempEdge = null
-            _graphMode.update { GraphMode.NORMAL }
+            tempEdge!!.source = graph.getNode(nodeId)
+            endEdgeDrawing(offset, true)
         }
+    }
+
+    private fun startEdgeDrawing(offset: Offset){
+        pointsList.add(offset)
+        _graphMode.update { GraphMode.EDGE_DRAWING }
+        _isRecipeMenuDisplayed.update { false }
+    }
+
+    // asReversed is taken as parameter because when edge drawing is started from input connector then it is first
+    // but when I update edge offset position I assume for output it is first offset and input last so by reversing
+    // I maintain that assumption
+    fun endEdgeDrawing(offset: Offset, asReversed: Boolean){
+        pointsList.add(offset)
+        val uiEdge = tempEdge!!.toUiEdge(if(asReversed) pointsList.asReversed() else pointsList)
+
+        _state.update { currentState ->
+            currentState.edges[uiEdge.id] = uiEdge
+            currentState.copy(edges = currentState.edges)
+        }
+
+        graph.addEdge(tempEdge)
+        resetToNormal()
+    }
+
+    private fun resetToNormal(){
+        tempEdge = null
+        pointsList.clear()
+        _graphMode.update { GraphMode.NORMAL }
     }
 
     fun addPointToEdge(offset: Offset){
@@ -214,6 +263,4 @@ class GraphEditorLogic {
 
     val pointsList = SnapshotStateList<Offset>()
     private var tempEdge: Edge? = null
-
 }
-

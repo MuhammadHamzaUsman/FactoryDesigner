@@ -44,7 +44,8 @@ public class Edge {
     @Override
     public String toString() {
         return "Edge{" +
-                "source=" + source +
+                "id" + id +
+                ", source=" + source +
                 ", item=" + item +
                 ", destination=" + destination +
                 '}';

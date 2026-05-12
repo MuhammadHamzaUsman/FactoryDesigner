@@ -20,6 +20,7 @@ import util.screenToWorld
 @Composable
 fun ItemColumn(
     uiNode: UiNode,
+    isInput: Boolean,
     controller: GraphEditorLogic,
     containerCords: LayoutCoordinates?,
     items: LinkedHashMap<Item, Double?>,
@@ -49,7 +50,12 @@ fun ItemColumn(
                         }
                     }
                     .clickable {
-                        controller.handleConnectorClick(uiNode.id, item, nodePos)
+                        if(isInput){
+                            controller.handleInputConnectorClick(uiNode.id, item, nodePos)
+                        }
+                        else{
+                            controller.handleOutputConnectorClick(uiNode.id, item, nodePos)
+                        }
                     }
                     .width(150.dp)
             )

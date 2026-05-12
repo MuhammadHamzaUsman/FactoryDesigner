@@ -15,9 +15,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.compose.AppTheme
 import org.example.factory.Item
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import ui.composables.LabelTextField
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
@@ -56,6 +54,7 @@ fun NodeCard(
         ) {
             ItemColumn(
                 uiNode = uiNode,
+                isInput = true,
                 controller = controller,
                 containerCords = containerCords,
                 items = inputMaterialCount,
@@ -119,6 +118,7 @@ fun NodeCard(
         ) {
             ItemColumn(
                 uiNode = uiNode,
+                isInput = false,
                 controller = controller,
                 containerCords = containerCords,
                 items = outputMaterialCount,
