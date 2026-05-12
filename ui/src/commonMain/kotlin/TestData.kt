@@ -82,22 +82,11 @@ fun initItemAndRecipe(): ItemAndRecipeState{
     return ItemAndRecipeState(items, recipes)
 }
 
-
-fun nameFromId(id: Long) = when(id){
-    0L -> "Constructor"
-    1L -> "Refinery"
-    else -> "No"
-}
-
 fun machineCount(id: Long) = when(id){
     0L -> 10
     1L -> 15
     else -> "No"
 }
-
-val ironOre = Item("Iron Ore")
-val ironIngot = Item("Iron Ingot")
-val ironPlate = Item("Iron Plate")
 
 fun initGraph(itemAndRecipeState: ItemAndRecipeState): Graph {
     val graph = Graph()

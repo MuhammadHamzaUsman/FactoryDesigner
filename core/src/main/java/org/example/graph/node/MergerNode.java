@@ -11,9 +11,15 @@ public class MergerNode extends Node {
     }
 
     @Override
+    public String[] getName() {
+        return new String[]{"Merger"};
+    }
+
+    @Override
     public String toString() {
         return "MergerNode{" +
                 "item=" + item +
                 '}';
     }
+
 }

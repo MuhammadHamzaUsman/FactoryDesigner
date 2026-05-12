@@ -14,7 +14,6 @@ import testState
 import ui.model.FilterOption
 import ui.model.toUiEdge
 import ui.model.toUiNode
-import ui.screen.EdgeDrawer
 import ui.state.GraphMode
 import util.linkedHashMapOf
 import kotlin.math.pow
@@ -160,8 +159,8 @@ class GraphEditorLogic {
     fun getInputMaterials(nodeId: Long): LinkedHashMap<Item, Double?> {
         return when(val node = graph.getNode(nodeId)){
             is TransformationNode -> node.recipe.inputMaterials
-            is SourceNode -> linkedHashMapOf<Item, Double?>(node.item, null)
-            is MergerNode -> linkedHashMapOf<Item, Double?>(node.item, null)
+            is SourceNode -> linkedHashMapOf(node.item, null)
+            is MergerNode -> linkedHashMapOf(node.item, null)
             else -> emptyMap
         }
     }
@@ -169,13 +168,13 @@ class GraphEditorLogic {
     fun getOutputMaterial(nodeId: Long): LinkedHashMap<Item, Double?> {
         return when(val node = graph.getNode(nodeId)){
             is TransformationNode -> node.recipe.outputMaterials
-            is SourceNode -> linkedHashMapOf<Item, Double?>(node.item, null)
-            is MergerNode -> linkedHashMapOf<Item, Double?>(node.item, null)
+            is SourceNode -> linkedHashMapOf(node.item, null)
+            is MergerNode -> linkedHashMapOf(node.item, null)
             else -> emptyMap
         }
     }
 
-    fun addNode(recipe: Recipe, type: NodeType, offset: Offset){
+    fun addNode(recipe: Recipe, offset: Offset){
         _state.update { state ->
             val node = TransformationNode(recipe)
             graph.addNode(node)
@@ -201,7 +200,7 @@ class GraphEditorLogic {
             startEdgeDrawing(offset)
         }
         else if (mode == GraphMode.EDGE_DRAWING) {
-            if(tempEdge?.source == null){
+            if(tempEdge?.source == null || item != tempEdge?.item){
                 resetToNormal()
                 return
             }
@@ -219,7 +218,7 @@ class GraphEditorLogic {
             startEdgeDrawing(offset)
         }
         else if(mode == GraphMode.EDGE_DRAWING){
-            if(tempEdge?.destination == null){
+            if(tempEdge?.destination == null || item != tempEdge?.item){
                 resetToNormal()
                 return
             }
@@ -263,4 +262,69 @@ class GraphEditorLogic {
 
     val pointsList = SnapshotStateList<Offset>()
     private var tempEdge: Edge? = null
+
+
+
+    private var _isEdgeListDisplayed = MutableStateFlow(false)
+    val isEdgeListDisplayed = _isEdgeListDisplayed.asStateFlow()
+
+    private val _edgeListOffset = MutableStateFlow(Offset(0f, 0f))
+    val edgeListOffset = _edgeListOffset.asStateFlow()
+
+    private val _nodeId = MutableStateFlow<Long?>(null)
+    val nodeId = _nodeId.asStateFlow()
+
+    private val _item = MutableStateFlow<Item?>(null)
+    val item = _item.asStateFlow()
+
+    val edgesList = SnapshotStateList<Edge>()
+
+    fun setDisplayEdge(nodeId: Long, item: Item, isInput: Boolean, offset: Offset){
+        if(!isEdgeListDisplayed.value) {
+            _isEdgeListDisplayed.update { true }
+            _nodeId.update { nodeId }
+            _item.update { item }
+            _edgeListOffset.update { offset }
+            edgesList.addAll(if (isInput) getItemInputEdges() else getItemOutputEdges())
+        }
+    }
+
+    fun updateEdgeListOffset(offset: Offset){
+        _edgeListOffset.update { it + offset }
+    }
+
+    fun resetEdgeListUpdate(){
+        _isEdgeListDisplayed.update { false  }
+        _nodeId.update{ null }
+        _item.update { null }
+        edgesList.clear()
+    }
+
+    private fun getItemInputEdges(): List<Edge> {
+        val nodeId = _nodeId.value ?: return emptyList()
+
+        val edges = graph.getInputEdges(nodeId)
+        val filter = edges.filter { it.item == item.value }
+
+        return filter
+    }
+
+    private fun getItemOutputEdges(): List<Edge> {
+        val nodeId = _nodeId.value ?: return emptyList()
+
+        val edges = graph.getOutputEdges(nodeId)
+        val filter = edges.filter { it.item == item.value }
+
+        return filter
+    }
+
+    fun deleteEdge(edgeId: Long){
+        graph.removeEdge(edgeId, false)
+        edgesList.removeIf { edge -> edge.id == edgeId }
+        _state.update {state ->
+            state.edges.remove(edgeId)
+
+            state.copy(edges = state.edges)
+        }
+    }
 }

@@ -11,6 +11,11 @@ public class TransformationNode extends Node {
     }
 
     @Override
+    public String[] getName() {
+        return new String[]{recipe.machineName, recipe.name};
+    }
+
+    @Override
     public String toString() {
         return "TransformationNode{" +
                 "recipe=" + recipe +

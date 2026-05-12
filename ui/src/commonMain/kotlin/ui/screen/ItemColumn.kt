@@ -1,6 +1,7 @@
 package ui.screen
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
@@ -17,6 +18,7 @@ import ui.model.UiNode
 import util.round
 import util.screenToWorld
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemColumn(
     uiNode: UiNode,
@@ -27,6 +29,8 @@ fun ItemColumn(
     modifier: Modifier = Modifier,
     onValueChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit
 ){
+    val edgeListDisplayed by controller.isEdgeListDisplayed.collectAsState()
+
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier
@@ -49,7 +53,11 @@ fun ItemColumn(
                             nodePos = sceneOffset.screenToWorld(controller.state.value.camera)
                         }
                     }
-                    .clickable {
+                    .combinedClickable(
+                        onDoubleClick = {
+                            controller.setDisplayEdge(uiNode.id, item, isInput, nodePos)
+                        }
+                    ) {
                         if(isInput){
                             controller.handleInputConnectorClick(uiNode.id, item, nodePos)
                         }

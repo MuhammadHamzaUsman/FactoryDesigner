@@ -1,7 +1,5 @@
 package org.example.graph.node;
 
-import java.util.Objects;
-
 public abstract class Node{
     private static long ID_COUNTER = 0;
     public final long id = ID_COUNTER++;
@@ -10,6 +8,8 @@ public abstract class Node{
     public Node(NodeType type) {
         this.type = type;
     }
+
+    abstract public String[] getName();
 
     @Override
     public boolean equals(Object o) {

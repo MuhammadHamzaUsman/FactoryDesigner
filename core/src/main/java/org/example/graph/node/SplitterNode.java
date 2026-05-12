@@ -11,6 +11,11 @@ public class SplitterNode extends Node {
     }
 
     @Override
+    public String[] getName() {
+        return new String[]{"Sink"};
+    }
+
+    @Override
     public String toString() {
         return "SplitterNode{" +
                 "item=" + item +

@@ -1,7 +1,6 @@
 package ui.model
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.unit.plus
 import org.example.graph.Edge
 import org.example.graph.Graph
 import ui.state.GraphEditorLayoutState

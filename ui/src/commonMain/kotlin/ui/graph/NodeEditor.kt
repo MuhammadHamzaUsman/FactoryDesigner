@@ -22,6 +22,7 @@ import ui.logic.GraphEditorLogic
 import ui.model.UiNode
 import ui.modifier.panZoom
 import ui.screen.EdgeDrawer
+import ui.screen.EdgesList
 import ui.screen.MachineSelectionMenu
 import ui.screen.NodeCard
 import ui.state.GraphMode
@@ -38,9 +39,17 @@ fun GraphScreen(
 
     val isRecipeMenuDisplayed by controller.isRecipeMenuDisplayed.collectAsState()
     val recipeMenuOffset by controller.recipeMenuOffset.collectAsState()
-    val draggableState = rememberDraggable2DState{
-        offset -> controller.updateRecipeMenuOffset(offset)
+    val draggableStateRecipeMenu = rememberDraggable2DState{ offset ->
+        controller.updateRecipeMenuOffset(offset)
         recipeMenuOffset
+    }
+
+    val isEdgeListDisplayed by controller.isEdgeListDisplayed.collectAsState()
+    val edgeList = controller.edgesList
+    val edgeListOffset by controller.edgeListOffset.collectAsState()
+    val draggableStateEdgeList = rememberDraggable2DState{ offset ->
+        controller.updateEdgeListOffset(offset)
+        edgeListOffset
     }
 
     val camera = state.camera
@@ -98,7 +107,17 @@ fun GraphScreen(
                 controller = controller,
                 modifier = Modifier
                     .offset{ recipeMenuOffset.toIntOffset() }
-                    .draggable2D(draggableState)
+                    .draggable2D(draggableStateRecipeMenu)
+            )
+        }
+
+        if (isEdgeListDisplayed){
+            EdgesList(
+                edgeList,
+                controller,
+                modifier = Modifier
+                    .offset{ edgeListOffset.toIntOffset() }
+                    .draggable2D(draggableStateEdgeList)
             )
         }
     }

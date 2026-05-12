@@ -49,16 +49,16 @@ public class Graph {
         return true;
     }
 
-    public List<Node> removeEdge(Edge edge){
-        if(!edgesIdMap.containsKey(edge.id)) return null;
-        edgesIdMap.remove(edge.id);
+    public List<Node> removeEdge(long edgeId, boolean removeNodeIdNoEdge){
+        if(!edgesIdMap.containsKey(edgeId)) return null;
+        Edge edge = edgesIdMap.remove(edgeId);
 
         List<Node> removedNodes = new ArrayList<>();
 
         EdgeHolder sourceNodeEdges = nodeEdgeMap.get(edge.source.id);
         sourceNodeEdges.outputEdges.remove(edge);
 
-        if(sourceNodeEdges.isEmpty()){
+        if(sourceNodeEdges.isEmpty() && removeNodeIdNoEdge){
             nodeEdgeMap.remove(edge.source.id);
             nodeIdMap.remove(edge.source.id);
             removedNodes.add(edge.source);
@@ -67,7 +67,7 @@ public class Graph {
         EdgeHolder destinationNodeEdges = nodeEdgeMap.get(edge.destination.id);
         destinationNodeEdges.inputEdges.remove(edge);
 
-        if(destinationNodeEdges.isEmpty()){
+        if(destinationNodeEdges.isEmpty() && removeNodeIdNoEdge){
             nodeEdgeMap.remove(edge.destination.id);
             nodeIdMap.remove(edge.destination.id);
             removedNodes.add(edge.destination);
@@ -110,7 +110,7 @@ public class Graph {
 
 
     public boolean containsEdge(Edge edge) {
-        return edgesIdMap.containsKey(edge);
+        return edgesIdMap.containsKey(edge.id);
     }
 
     public Set<Edge> getOutputEdges(long nodeId){

@@ -44,7 +44,7 @@ fun RecipeCard(
                 shape = RoundedCornerShape(8.dp)
             )
             .clickableWithOffset(
-                onClick = { controller.addNode(recipe, NodeType.TRANSFORMATION, it) }
+                onClick = { controller.addNode(recipe, it) }
             )
     ) {
         Column(

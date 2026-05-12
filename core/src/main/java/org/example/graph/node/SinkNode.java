@@ -13,6 +13,11 @@ public class SinkNode extends Node {
     }
 
     @Override
+    public String[] getName() {
+        return new String[] {"Splitter"};
+    }
+
+    @Override
     public String toString() {
         return "SinkNode{" +
                 "sinkRate=" + sinkRate +

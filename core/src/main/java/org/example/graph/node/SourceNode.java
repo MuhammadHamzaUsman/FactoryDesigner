@@ -13,6 +13,11 @@ public class SourceNode extends Node{
     }
 
     @Override
+    public String[] getName() {
+        return new String[]{"Source"};
+    }
+
+    @Override
     public String toString() {
         return "SourceNode{" +
                 "productionRate=" + productionRate +
