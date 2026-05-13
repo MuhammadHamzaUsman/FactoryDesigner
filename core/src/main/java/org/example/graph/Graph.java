@@ -31,6 +31,15 @@ public class Graph {
 
     public boolean addEdge(Edge edge){
         if(edgesIdMap.containsKey(edge.id)) return false;
+
+        // if edge with same source and destination is present do not add it
+        EdgeHolder holder = getHolderOrEmpty(edge.source.id);
+        for (Edge outputEdge : holder.outputEdges) {
+            if(outputEdge.destination.id == edge.destination.id){
+                return false;
+            }
+        }
+
         edgesIdMap.put(edge.id, edge);
 
         nodeIdMap.computeIfAbsent( edge.source.id, id -> {
@@ -39,7 +48,6 @@ public class Graph {
         });
         nodeEdgeMap.get(edge.source.id).outputEdges.add(edge);
 
-
         nodeIdMap.computeIfAbsent( edge.destination.id, id -> {
             nodeEdgeMap.putIfAbsent(id, new EdgeHolder());
             return edge.destination;
@@ -47,6 +55,50 @@ public class Graph {
         nodeEdgeMap.get(edge.destination.id).inputEdges.add(edge);
 
         return true;
+    }
+    
+    public List<Edge> removeNode(long nodeId){
+        if(!nodeIdMap.containsKey(nodeId)) return null;
+        
+        EdgeHolder edges = nodeEdgeMap.remove(nodeId);
+        if(edges == null) return null;
+        
+        Node node = nodeIdMap.remove(nodeId);
+        if(node == null) return null;
+        
+        List<Edge> edgesRemoved = new ArrayList<>();
+
+        for (Edge inputEdge : edges.inputEdges) {
+            if(inputEdge.source.id != nodeId) {
+                removeEdgeFromNode(inputEdge.source.id , inputEdge, edgesRemoved);
+            }
+            else if(inputEdge.destination.id != nodeId) {
+                removeEdgeFromNode(inputEdge.destination.id , inputEdge, edgesRemoved);
+            }
+        }
+
+        for (Edge outputEdge : edges.outputEdges) {
+            if(outputEdge.source.id != nodeId) {
+                removeEdgeFromNode(outputEdge.source.id , outputEdge, edgesRemoved);
+            }
+            else if(outputEdge.destination.id != nodeId) {
+                removeEdgeFromNode(outputEdge.destination.id , outputEdge, edgesRemoved);
+            }
+        }
+
+        return edgesRemoved;
+    }
+
+    private void removeEdgeFromNode(long nodeId, Edge edge, List<Edge> edgesRemoved) {
+        EdgeHolder holder = getHolderOrEmpty(nodeId);
+
+        holder.outputEdges.remove(edge);
+        holder.inputEdges.remove(edge);
+
+        Edge removed = edgesIdMap.remove(edge.id);
+        if(edgesRemoved != null && removed != null){
+            edgesRemoved.add(removed);
+        }
     }
 
     public List<Node> removeEdge(long edgeId, boolean removeNodeIdNoEdge){

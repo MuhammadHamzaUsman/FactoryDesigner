@@ -2,7 +2,9 @@ package org.example;
 
 import org.example.factory.Item;
 import org.example.factory.Recipe;
-import org.example.graph.*;
+import org.example.graph.Edge;
+import org.example.graph.Graph;
+import org.example.graph.GraphToLinearSystem;
 import org.example.graph.node.Node;
 import org.example.graph.node.SinkNode;
 import org.example.graph.node.SourceNode;

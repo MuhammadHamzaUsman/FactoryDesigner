@@ -12,6 +12,7 @@ import org.example.graph.Edge
 import org.example.graph.node.*
 import testState
 import ui.model.FilterOption
+import ui.model.UiNode
 import ui.model.toUiEdge
 import ui.model.toUiNode
 import ui.state.GraphMode
@@ -238,15 +239,18 @@ class GraphEditorLogic {
     // but when I update edge offset position I assume for output it is first offset and input last so by reversing
     // I maintain that assumption
     fun endEdgeDrawing(offset: Offset, asReversed: Boolean){
-        pointsList.add(offset)
-        val uiEdge = tempEdge!!.toUiEdge(if(asReversed) pointsList.asReversed() else pointsList)
+        val added = graph.addEdge(tempEdge)
 
-        _state.update { currentState ->
-            currentState.edges[uiEdge.id] = uiEdge
-            currentState.copy(edges = currentState.edges)
+        if(added) {
+            pointsList.add(offset)
+            val uiEdge = tempEdge!!.toUiEdge(if (asReversed) pointsList.asReversed() else pointsList)
+
+            _state.update { currentState ->
+                currentState.edges[uiEdge.id] = uiEdge
+                currentState.copy(edges = currentState.edges)
+            }
         }
 
-        graph.addEdge(tempEdge)
         resetToNormal()
     }
 
@@ -325,6 +329,25 @@ class GraphEditorLogic {
             state.edges.remove(edgeId)
 
             state.copy(edges = state.edges)
+        }
+    }
+
+    fun removeNode(uiNode: UiNode) {
+        val removedEdges = graph.removeNode(uiNode.id)
+        val edges = state.value.edges
+        val nodes = state.value.nodes
+
+        for (edge in removedEdges) {
+            edges.remove(edge.id)
+        }
+
+        nodes.remove(uiNode.id)
+
+        _state.update { state ->
+            state.copy(
+                nodes = nodes,
+                edges = edges
+            )
         }
     }
 }

@@ -29,8 +29,6 @@ fun ItemColumn(
     modifier: Modifier = Modifier,
     onValueChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit
 ){
-    val edgeListDisplayed by controller.isEdgeListDisplayed.collectAsState()
-
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier
