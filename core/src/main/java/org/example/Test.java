@@ -68,12 +68,12 @@ public class Test {
 
 //         creating node
         Node recycler = new TransformationNode(recipes.get("Iron Recycling"));
-        Node source1 = new SourceNode(0, items.get("Iron Ore"));
-        Node source2 = new SourceNode(0, items.get("Iron Ore"));
+        Node source1 = new SourceNode(items.get("Iron Ore"));
+        Node source2 = new SourceNode(items.get("Iron Ore"));
         Node smelter = new TransformationNode(recipes.get("Iron Smelting"));
         Node constructor1 = new TransformationNode(recipes.get("Iron Plates"));
         Node constructor2 = new TransformationNode(recipes.get("Iron Light Frames"));
-        Node frameSink = new SinkNode(0.0, items.get("Frame"));
+        Node frameSink = new SinkNode(items.get("Frame"));
         List<Node> nodes = List.of(source1, smelter, constructor1, constructor2, frameSink, recycler, source2);
 
         // connecting them
@@ -133,7 +133,7 @@ public class Test {
         ));
 
 
-        Node A_node = new SourceNode(0, item);
+        Node A_node = new SourceNode(item);
         Node B_node = new TransformationNode(recipes.get("Iron Waster")); // dummy passthrough
         Node C_node = new TransformationNode(recipes.get("Iron Recycling"));
 

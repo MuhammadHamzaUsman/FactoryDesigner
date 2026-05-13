@@ -99,7 +99,7 @@ private fun ItemColumn(
 }
 
 @Composable
-private fun ThemedText(
+fun ThemedText(
     text: String,
     align: TextAlign = TextAlign.Left,
     style:  TextStyle = MaterialTheme.typography.labelLarge,

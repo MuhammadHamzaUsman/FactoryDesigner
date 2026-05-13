@@ -27,7 +27,9 @@ val testState = GraphEditorLayoutState(
     ),
     edges = mutableStateMapOf(
     ),
-    camera = Camera(Offset.Zero, 1f)
+    camera = Camera(Offset.Zero, 1f),
+    null,
+    mutableStateMapOf()
 )
 
 val itemAndRecipe = initItemAndRecipe()

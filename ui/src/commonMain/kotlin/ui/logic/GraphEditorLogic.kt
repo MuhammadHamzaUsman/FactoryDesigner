@@ -4,21 +4,27 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import initGraph
 import itemAndRecipe
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.example.factory.Item
 import org.example.factory.Recipe
 import org.example.graph.Edge
+import org.example.graph.GraphException
+import org.example.graph.GraphToLinearSystem
 import org.example.graph.node.*
+import org.example.math.LinearSystemSolver
 import testState
 import ui.model.FilterOption
 import ui.model.UiNode
 import ui.model.toUiEdge
 import ui.model.toUiNode
 import ui.state.GraphMode
-import util.linkedHashMapOf
+import ui.state.MachineCountUpdate
+import util.round
+import util.toDoubleRoundedStringOrEmpty
 import kotlin.math.pow
 
+@OptIn(FlowPreview::class)
 class GraphEditorLogic {
     private var _state = MutableStateFlow(testState)
     val state = _state.asStateFlow()
@@ -116,32 +122,53 @@ class GraphEditorLogic {
     }
 
     @OptIn(FlowPreview::class)
-    val filteredItems = searchText
+    val filteredRecipe = searchText
         .debounce(500)
         .combine(filterOption){ searchText, filterOption ->
-            if(searchText.isBlank() || filterOption == null) emptyList<Recipe>()
+            if(searchText.isBlank() || filterOption == null) emptyList()
             else getListOfRecipe(searchText, filterOption)
         }
+
+    val filteredItem = searchText
+        .debounce(500)
+        .combine(filterOption){ searchText, filterOption ->
+            if(searchText.isBlank() || filterOption == null) emptyList()
+            else getListOfItem(searchText, filterOption)
+        }
+
+    fun getListOfItem(searchText: String, filterOption: FilterOption): List<Item> {
+        if (filterOption == FilterOption.Source || filterOption == FilterOption.Sink) {
+
+            val lower = searchText.lowercase()
+
+            return itemAndRecipeState.items.values
+                .filter {
+                    it.name.lowercase().contains(lower)
+                }
+        }
+
+        return emptyList()
+    }
 
     fun getListOfRecipe(search: String, filterOption: FilterOption): List<Recipe> {
         return when(filterOption){
             FilterOption.RECIPE -> itemAndRecipeState.recipes
                 .filter {(_, recipe) ->
                     recipe.name.lowercase().contains(search.lowercase())
-                }
+                }.map { it.value }
 
             FilterOption.INPUT_MATERIAL -> itemAndRecipeState.recipes
                 .filter {(_, recipe) ->
                     recipe.inputMaterials.keys.any { it.name.lowercase().contains(search.lowercase()) }
-                }
+                }.map { it.value }
 
             FilterOption.OUTPUT_MATERIAL -> itemAndRecipeState.recipes
                 .filter {(_, recipe) ->
                     recipe.outputMaterials.keys.any { it.name.lowercase().contains(search.lowercase()) }
-                }
+                }.map { it.value }
+
+            else -> {emptyList()}
         }
-        .values
-        .toList()
     }
 
     private val graph = initGraph(itemAndRecipe)
@@ -157,25 +184,73 @@ class GraphEditorLogic {
         }
     }
 
-    fun getInputMaterials(nodeId: Long): LinkedHashMap<Item, Double?> {
-        return when(val node = graph.getNode(nodeId)){
-            is TransformationNode -> node.recipe.inputMaterials
-            is SourceNode -> linkedHashMapOf(node.item, null)
-            is MergerNode -> linkedHashMapOf(node.item, null)
-            else -> emptyMap
+    fun getMaterialCount(edges: Set<Edge>, items: Set<Item>): LinkedHashMap<Item, Double?>{
+        val map = LinkedHashMap<Item, Double?>()
+        for (item in items) {
+            map[item] = null
         }
+
+        var prev: Double?
+        var curr: Double?
+
+        for (edge in edges) {
+            prev = map[edge.item] ?: 0.0
+            curr = _state.value.edgesValue?.get(edge.id) ?: continue
+
+            map[edge.item] = prev + curr
+        }
+
+        return map
+    }
+
+    fun getMaterialCount(edges: Set<Edge>, item: Item): LinkedHashMap<Item, Double?>{
+        val map = LinkedHashMap<Item, Double?>()
+        map[item] = null
+
+        var prev: Double?
+        var curr: Double?
+
+        for (edge in edges) {
+            prev = map[edge.item] ?: 0.0
+            curr = _state.value.edgesValue?.get(edge.id) ?: continue
+
+            map[edge.item] = prev + curr
+        }
+
+        return map
+    }
+
+    fun getInputMaterials(nodeId: Long): LinkedHashMap<Item, Double?> {
+        val edges = graph.getInputEdges(nodeId)
+        val items = when(val node = graph.getNode(nodeId)){
+            is TransformationNode ->  node.recipe.inputMaterials.keys
+            is SourceNode ->  setOf(node.item)
+            is MergerNode ->  setOf(node.item)
+            is SinkNode ->  setOf(node.item)
+            is SplitterNode ->  setOf(node.item)
+            else -> emptySet()
+        }
+
+        return getMaterialCount(edges, items)
     }
 
     fun getOutputMaterial(nodeId: Long): LinkedHashMap<Item, Double?> {
-        return when(val node = graph.getNode(nodeId)){
-            is TransformationNode -> node.recipe.outputMaterials
-            is SourceNode -> linkedHashMapOf(node.item, null)
-            is MergerNode -> linkedHashMapOf(node.item, null)
-            else -> emptyMap
+        val edges = graph.getOutputEdges(nodeId)
+        val items = when(val node = graph.getNode(nodeId)){
+            is TransformationNode ->  node.recipe.outputMaterials.keys
+            is SourceNode ->  setOf(node.item)
+            is MergerNode ->  setOf(node.item)
+            is SinkNode ->  setOf(node.item)
+            is SplitterNode ->  setOf(node.item)
+            else -> emptySet()
         }
+
+        return getMaterialCount(edges, items)
     }
 
     fun addNode(recipe: Recipe, offset: Offset){
+        if(graphMode.value == GraphMode.CALCULATING) return
+
         _state.update { state ->
             val node = TransformationNode(recipe)
             graph.addNode(node)
@@ -208,6 +283,9 @@ class GraphEditorLogic {
 
             tempEdge!!.destination = graph.getNode(nodeId)
             endEdgeDrawing(offset, false)
+        } else if(mode == GraphMode.CALCULATING){
+            resetToNormal()
+            return
         }
     }
 
@@ -226,6 +304,10 @@ class GraphEditorLogic {
 
             tempEdge!!.source = graph.getNode(nodeId)
             endEdgeDrawing(offset, true)
+        }
+        else if(mode == GraphMode.CALCULATING){
+            resetToNormal()
+            return
         }
     }
 
@@ -323,6 +405,8 @@ class GraphEditorLogic {
     }
 
     fun deleteEdge(edgeId: Long){
+        if(graphMode.value == GraphMode.CALCULATING) return
+
         graph.removeEdge(edgeId, false)
         edgesList.removeIf { edge -> edge.id == edgeId }
         _state.update {state ->
@@ -333,6 +417,8 @@ class GraphEditorLogic {
     }
 
     fun removeNode(uiNode: UiNode) {
+        if(graphMode.value == GraphMode.CALCULATING) return
+
         val removedEdges = graph.removeNode(uiNode.id)
         val edges = state.value.edges
         val nodes = state.value.nodes
@@ -350,4 +436,115 @@ class GraphEditorLogic {
             )
         }
     }
+
+
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    fun setMachineCount(nodeId: Long, machines: String){
+        _machineCount.update { MachineCountUpdate(machines, nodeId) }
+    }
+
+    fun calculateValuesFromMachineCount(nodeId: Long, machines: Double){
+        _graphMode.update { GraphMode.CALCULATING }
+
+        try{
+            val pair = GraphToLinearSystem.generateLinearSystem(graph)
+            val linearSystem = pair.first
+            val edgeVariableMap = pair.second
+
+            val recipe = (graph.getNode(nodeId) as TransformationNode).recipe
+
+            graph.forEachInputEdge(nodeId) {
+                linearSystem.injectVariablesValue(
+                    edgeVariableMap[it.id]!!,
+                    recipe.inputMaterials[it.item]!! * machines
+                )
+            }
+
+            graph.forEachOutputEdge(nodeId) {
+                linearSystem.injectVariablesValue(
+                    edgeVariableMap[it.id]!!,
+                    recipe.outputMaterials[it.item]!! * machines
+                )
+            }
+
+            val solved = LinearSystemSolver.solveSystem(linearSystem)
+
+            val newEdgeValues = edgeVariableMap.mapValues { solved[it.value]?.round(2) ?: 0.0 }
+            calculateMachineCounts(newEdgeValues).forEach { (id, double) ->
+                _state.value.machineCount[id] = double.toDoubleRoundedStringOrEmpty(2)
+            }
+
+            _state.update { state ->
+                state.copy(edgesValue = newEdgeValues)
+            }
+
+            println(newEdgeValues)
+        }
+        catch (e: GraphException){ }
+        finally {
+            _graphMode.update { GraphMode.NORMAL }
+        }
+    }
+
+    private fun calculateMachineCounts(edgeValues: Map<Long, Double>): Map<Long, Double> {
+        val nodeMachineMap = mutableMapOf<Long, Double>()
+        val machineCounts = mutableListOf<Double>()
+        var recipe: Recipe
+
+        graph.forEachNode { node ->
+            if(node is TransformationNode){
+                recipe = node.recipe
+
+                graph.forEachInputEdge(node.id){ edge ->
+                    machineCounts.add(edgeValues[edge.id]!! / recipe.inputMaterials[edge.item]!!)
+                }
+
+                graph.forEachOutputEdge(node.id){ edge ->
+                    machineCounts.add(edgeValues[edge.id]!! / recipe.outputMaterials[edge.item]!!)
+                }
+
+                if(machineCounts.isNotEmpty()) {
+                    nodeMachineMap[node.id] = machineCounts.sum() / machineCounts.size
+                }
+                machineCounts.clear()
+            }
+        }
+
+        return nodeMachineMap
+    }
+
+    fun clearScope(){
+        scope.cancel()
+    }
+
+    fun addNode(item: Item, offset: Offset, isSource: Boolean) {
+        if(graphMode.value == GraphMode.CALCULATING) return
+
+        _state.update { state ->
+            val node = if(isSource) SourceNode(item) else SinkNode(item)
+            graph.addNode(node)
+
+            state.nodes[node.id] = node.toUiNode(offset)
+
+            state
+        }
+    }
+
+    private val _machineCount = MutableStateFlow<MachineCountUpdate?>(null)
+    val machineCount = _machineCount.asStateFlow()
+
+    init{
+        scope.launch {
+            machineCount
+                .debounce(500)
+                .filterNotNull()
+                .collectLatest { update ->
+                    val count = update.count.toDoubleOrNull() ?: return@collectLatest
+                    calculateValuesFromMachineCount(update.nodeId, count)
+                }
+        }
+    }
+
+    fun getNode(uiNodeId: Long): Node = graph.getNode(uiNodeId)
 }

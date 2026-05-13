@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.compose.AppTheme
+import org.example.factory.Item
 import org.example.factory.Recipe
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import ui.composables.FixedLabelButton
@@ -30,7 +31,8 @@ fun MachineSelectionMenu(
 ) {
     val searchStr by controller.searchText.collectAsState()
     val selectedFilter by controller.filterOption.collectAsState()
-    val filteredRecipes by controller.filteredItems.collectAsState(emptyList())
+    val filteredRecipes by controller.filteredRecipe.collectAsState(emptyList())
+    val filteredItems by controller.filteredItem.collectAsState(emptyList())
 
     Column(
         modifier = modifier
@@ -64,9 +66,8 @@ fun MachineSelectionMenu(
         Column(
             modifier = Modifier.padding(vertical = 8.dp)
         ) {
-            Row(
+            Column(
                 modifier = Modifier
-                    .padding(bottom = 8.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .border(
                         width = 2.dp,
@@ -74,19 +75,26 @@ fun MachineSelectionMenu(
                         shape = RoundedCornerShape(8.dp)
                     )
                     .padding(4.dp)
-            ) {
-                for (option in FilterOption.entries) {
-                    ThemedRadioButton(
-                        label = option.text,
-                        selected = selectedFilter == option,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(4.dp)),
-                    ) {
-                        if (selectedFilter == option) {
-                            controller.updateFilterOption(null)
-                        } else {
-                            controller.updateFilterOption(option)
+            ){
+                for (i in 0..<FilterOption.entries.size step 3) {
+                    Row{
+                        for (option in FilterOption.entries.subList(
+                            i,
+                            (i + 3).coerceAtMost(FilterOption.entries.size)
+                        )) {
+                            ThemedRadioButton(
+                                label = option.text,
+                                selected = selectedFilter == option,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(4.dp)),
+                            ) {
+                                if (selectedFilter == option) {
+                                    controller.updateFilterOption(null)
+                                } else {
+                                    controller.updateFilterOption(option)
+                                }
+                            }
                         }
                     }
                 }
@@ -94,6 +102,7 @@ fun MachineSelectionMenu(
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(top = 8.dp)
             ) {
                 FixedLabelButton("Splitter")
                 FixedLabelButton("Merger")
@@ -105,8 +114,26 @@ fun MachineSelectionMenu(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ){
-            items(filteredRecipes, key = Recipe::id){
-                RecipeCard(it, controller)
+            when(selectedFilter){
+                FilterOption.RECIPE, FilterOption.INPUT_MATERIAL, FilterOption.OUTPUT_MATERIAL -> {
+                    items(filteredRecipes, key = Recipe::id) {
+                        RecipeCard(it, controller)
+                    }
+                }
+
+                FilterOption.Source -> {
+                    items(filteredItems, key = Item::id) {
+                        SourceSinkCard( true, it, controller)
+                    }
+                }
+
+                FilterOption.Sink -> {
+                    items(filteredItems, key = Item::id) {
+                        SourceSinkCard( false, it, controller)
+                    }
+                }
+
+                else -> {}
             }
         }
     }

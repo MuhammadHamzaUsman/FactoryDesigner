@@ -41,6 +41,7 @@ fun ItemColumn(
                 label = item.name,
                 value = count?.round(2)?.toString() ?: "",
                 spacing = 8.dp,
+                onDone = {},
                 onValueChange = { onValueChange(uiNode, item, it.toDoubleOrNull(), nodePos) },
                 modifier = Modifier
                     .onGloballyPositioned { childCords ->

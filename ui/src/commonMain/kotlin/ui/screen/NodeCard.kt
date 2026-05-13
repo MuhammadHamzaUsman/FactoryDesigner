@@ -12,6 +12,12 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -21,6 +27,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.factory.Item
+import org.example.graph.node.SinkNode
+import org.example.graph.node.SourceNode
 import ui.composables.LabelTextField
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
@@ -33,16 +41,25 @@ import util.toDoubleRoundedStringOrEmpty
 fun NodeCard(
     uiNode: UiNode,
     nodeName: String,
-    nodeCount: String,
     inputMaterialCount: LinkedHashMap<Item, Double?>,
     outputMaterialCount: LinkedHashMap<Item, Double?>,
-    onMachineCountValueChange: (uiNode: UiNode, newValue: Double?, newPositionCenter: Offset) -> Unit,
     onInputMaterialCountChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit,
     onOutputMaterialCountChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit,
     controller: GraphEditorLogic,
     modifier: Modifier = Modifier,
     containerCords: LayoutCoordinates?
 ){
+    val node = controller.getNode(uiNode.id)
+    val state by controller.state.collectAsState()
+    val machineCount = state.machineCount[uiNode.id]
+    var textFieldValue by remember { mutableStateOf("") }
+
+    LaunchedEffect(machineCount){
+        if(machineCount != null) {
+            textFieldValue = machineCount.toDoubleRoundedStringOrEmpty(2)
+        }
+    }
+
     Row(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -52,20 +69,22 @@ fun NodeCard(
                 translationY = uiNode.position.y
             }
     ) {
-        Card(
-            elevation = 4.dp,
-            backgroundColor = MaterialTheme.colorScheme.surfaceBright,
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            ItemColumn(
-                uiNode = uiNode,
-                isInput = true,
-                controller = controller,
-                containerCords = containerCords,
-                items = inputMaterialCount,
-                onValueChange = onInputMaterialCountChange,
-                modifier = Modifier.padding(8.dp)
-            )
+        if(node !is SourceNode) {
+            Card(
+                elevation = 4.dp,
+                backgroundColor = MaterialTheme.colorScheme.surfaceBright,
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                ItemColumn(
+                    uiNode = uiNode,
+                    isInput = true,
+                    controller = controller,
+                    containerCords = containerCords,
+                    items = inputMaterialCount,
+                    onValueChange = onInputMaterialCountChange,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
         }
 
         Card(
@@ -126,27 +145,33 @@ fun NodeCard(
 
                 LabelTextField(
                     label = "Machine Count",
-                    value = nodeCount.toDoubleRoundedStringOrEmpty(2),
+                    value = textFieldValue,
                     spacing = 8.dp,
-                    onValueChange = { onMachineCountValueChange(uiNode, it.toDoubleOrNull(), uiNode.position) }
+                    onDone = {
+                        if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
+                            controller.setMachineCount(uiNode.id, it)
+                        }
+                    },
+                    onValueChange = { textFieldValue = it }
                 )
             }
         }
-
-        Card(
-            elevation = 4.dp,
-            backgroundColor = MaterialTheme.colorScheme.surfaceDim,
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            ItemColumn(
-                uiNode = uiNode,
-                isInput = false,
-                controller = controller,
-                containerCords = containerCords,
-                items = outputMaterialCount,
-                onValueChange = onOutputMaterialCountChange,
-                modifier = Modifier.padding(8.dp)
-            )
+        if(node !is SinkNode) {
+            Card(
+                elevation = 4.dp,
+                backgroundColor = MaterialTheme.colorScheme.surfaceDim,
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                ItemColumn(
+                    uiNode = uiNode,
+                    isInput = false,
+                    controller = controller,
+                    containerCords = containerCords,
+                    items = outputMaterialCount,
+                    onValueChange = onOutputMaterialCountChange,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
         }
     }
 }

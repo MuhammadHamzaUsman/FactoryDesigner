@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import machineCount
 import org.example.factory.Item
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
@@ -91,10 +90,8 @@ fun GraphScreen(
             NodeCard(
                 uiNode = node,
                 nodeName = controller.getNodeName(id),
-                nodeCount = machineCount(id).toString(),
                 inputMaterialCount = controller.getInputMaterials(id) ,
                 outputMaterialCount = controller.getOutputMaterial(id),
-                onMachineCountValueChange = { node: UiNode, d: Double?, offset: Offset -> },
                 onInputMaterialCountChange = { node: UiNode, item: Item, d: Double?, offset: Offset -> },
                 onOutputMaterialCountChange = { node: UiNode, item: Item, d: Double?, offset: Offset -> },
                 controller = controller,

@@ -1,16 +1,18 @@
 package util
 
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.unit.IntOffset
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-fun String?.toDoubleRoundedStringOrEmpty(roundUpTo: Int): String {
-    val result = this?.toDoubleOrNull() ?: return ""
+fun String.toDoubleRoundedStringOrEmpty(roundUpTo: Int): String {
+    return toDoubleOrNull()?.toDoubleRoundedStringOrEmpty(roundUpTo) ?: return ""
+}
 
-    val base = 10.0.pow(roundUpTo.toDouble())
+fun Double?.toDoubleRoundedStringOrEmpty(roundUpTo: Int): String {
+    val number = this ?: return ""
 
-    return "${(result * base).roundToInt() / base}"
+    return "%.${roundUpTo}f".format(number)
+        .replace(Regex("0*$"), "") // Remove trailing zeros
+        .replace(Regex("\\.$"), "")
 }
 
 fun Double.round(roundUpTo: Int): Double{
