@@ -1,16 +1,25 @@
 package org.example.factory;
 
+import kotlinx.serialization.Serializable;
+
 import java.util.Objects;
 
+@Serializable
 public class Item {
 
     private static long ID_COUNTER = 0;
-    public final long id = ID_COUNTER++;
+    public transient final long id = ID_COUNTER++;
 
     public final String name;
 
     public Item(String name) {
+        if(name.isBlank()) throw new RuntimeException("Item name should not be blank");
+
         this.name = name;
+    }
+
+    public static void resetCounter(){
+        ID_COUNTER = 0;
     }
 
     @Override

@@ -36,6 +36,7 @@ fun MachineSelectionMenu(
     val selectedFilter by controller.filterOption.collectAsState()
     val filteredRecipes by controller.filteredRecipe.collectAsState(emptyList())
     val filteredItems by controller.filteredItem.collectAsState(emptyList())
+    val itemAndRecipeState by controller.itemAndRecipeState.collectAsState()
 
     Column(
         modifier = modifier

@@ -3,30 +3,12 @@ import androidx.compose.ui.geometry.Offset
 import org.example.data.ItemAndRecipeState
 import org.example.factory.Item
 import org.example.factory.Recipe
-import org.example.graph.Graph
-import org.example.graph.node.NodeType
-import org.example.graph.node.TransformationNode
 import ui.model.Camera
-import ui.model.UiNode
 import ui.state.GraphEditorLayoutState
 
 val testState = GraphEditorLayoutState(
-    nodes = mutableStateMapOf(
-        0L to UiNode(
-            id = 0,
-            position = Offset(10f, 10f),
-            type = NodeType.TRANSFORMATION
-        ),
-
-        1L to UiNode(
-            id = 1,
-            position = Offset(50f, 50f),
-            type = NodeType.TRANSFORMATION
-        )
-
-    ),
-    edges = mutableStateMapOf(
-    ),
+    nodes = mutableStateMapOf(),
+    edges = mutableStateMapOf(),
     camera = Camera(Offset.Zero, 1f),
     null,
     mutableStateMapOf()
@@ -82,22 +64,4 @@ fun initItemAndRecipe(): ItemAndRecipeState{
     }
 
     return ItemAndRecipeState(items, recipes)
-}
-
-fun machineCount(id: Long) = when(id){
-    0L -> 10
-    1L -> 15
-    else -> "No"
-}
-
-fun initGraph(itemAndRecipeState: ItemAndRecipeState): Graph {
-    val graph = Graph()
-
-    val node1 = TransformationNode(itemAndRecipeState.recipes[0L])
-    val node2 = TransformationNode(itemAndRecipeState.recipes[1L])
-
-    graph.addNode(node1)
-    graph.addNode(node2)
-
-    return graph
 }

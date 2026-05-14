@@ -2,6 +2,7 @@ plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
+    kotlin("plugin.serialization")
 }
 
 compose.resources {
@@ -28,6 +29,7 @@ kotlin {
                 implementation(compose.runtime)
                 implementation(compose.components.resources)
                 implementation(compose.components.uiToolingPreview)
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
                 implementation(project(":core"))
             }

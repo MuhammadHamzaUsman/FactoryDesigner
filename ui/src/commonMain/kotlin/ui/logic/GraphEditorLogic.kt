@@ -2,13 +2,14 @@ package ui.logic
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
-import initGraph
 import itemAndRecipe
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.SerializationException
 import org.example.factory.Item
 import org.example.factory.Recipe
 import org.example.graph.Edge
+import org.example.graph.Graph
 import org.example.graph.GraphException
 import org.example.graph.GraphToLinearSystem
 import org.example.graph.node.*
@@ -16,6 +17,8 @@ import org.example.math.LinearSystem
 import org.example.math.LinearSystemSolver
 import org.example.math.Variable
 import testState
+import ui.io.loadItemAndRecipe
+import ui.io.selectAndReadJsonFile
 import ui.model.FilterOption
 import ui.model.UiNode
 import ui.model.toUiEdge
@@ -32,7 +35,8 @@ class GraphEditorLogic {
     private var _state = MutableStateFlow(testState)
     val state = _state.asStateFlow()
 
-    private val itemAndRecipeState = itemAndRecipe
+    private val _itemAndRecipeState = MutableStateFlow(itemAndRecipe)
+    val itemAndRecipeState = _itemAndRecipeState.asStateFlow()
 
     fun updateZoom(scrollDelta: Float, cursor: Offset){
         _state.update { state ->
@@ -113,6 +117,8 @@ class GraphEditorLogic {
     }
 
     fun setRecipeMenuDisplayed(displayed: Boolean){
+        if(graphMode.value == GraphMode.LOADING) return
+
         _isRecipeMenuDisplayed.update { displayed }
     }
 
@@ -144,7 +150,7 @@ class GraphEditorLogic {
             FilterOption.Source, FilterOption.Sink, FilterOption.SPLITTER, FilterOption.MERGER ->{
                 val lower = searchText.lowercase()
 
-                itemAndRecipeState.items.values
+                itemAndRecipeState.value.items.values
                     .filter {
                         it.name.lowercase().contains(lower)
                     }
@@ -155,17 +161,17 @@ class GraphEditorLogic {
 
     fun getListOfRecipe(search: String, filterOption: FilterOption): List<Recipe> {
         return when(filterOption){
-            FilterOption.RECIPE -> itemAndRecipeState.recipes
+            FilterOption.RECIPE -> itemAndRecipeState.value.recipes
                 .filter {(_, recipe) ->
                     recipe.name.lowercase().contains(search.lowercase())
                 }.map { it.value }
 
-            FilterOption.INPUT_MATERIAL -> itemAndRecipeState.recipes
+            FilterOption.INPUT_MATERIAL -> itemAndRecipeState.value.recipes
                 .filter {(_, recipe) ->
                     recipe.inputMaterials.keys.any { it.name.lowercase().contains(search.lowercase()) }
                 }.map { it.value }
 
-            FilterOption.OUTPUT_MATERIAL -> itemAndRecipeState.recipes
+            FilterOption.OUTPUT_MATERIAL -> itemAndRecipeState.value.recipes
                 .filter {(_, recipe) ->
                     recipe.outputMaterials.keys.any { it.name.lowercase().contains(search.lowercase()) }
                 }.map { it.value }
@@ -174,7 +180,7 @@ class GraphEditorLogic {
         }
     }
 
-    private val graph = initGraph(itemAndRecipe)
+    private val graph = Graph()
 
     fun getNodeName(nodeId: Long): String{
         return when(val node = graph.getNode(nodeId)){
@@ -331,8 +337,6 @@ class GraphEditorLogic {
     val pointsList = SnapshotStateList<Offset>()
     private var tempEdge: Edge? = null
 
-
-
     private var _isEdgeListDisplayed = MutableStateFlow(false)
     val isEdgeListDisplayed = _isEdgeListDisplayed.asStateFlow()
 
@@ -422,6 +426,8 @@ class GraphEditorLogic {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     fun setMachineCount(nodeId: Long, machines: String){
+        if(graphMode.value == GraphMode.CALCULATING) return
+
         _machineCount.update { MachineCountUpdate(machines, nodeId) }
     }
 
@@ -528,6 +534,8 @@ class GraphEditorLogic {
     val itemCount = _itemCount.asStateFlow()
 
     fun setItemCount(uiNodeId: Long, item: Item, itemCount: String, isInput: Boolean){
+        if(graphMode.value == GraphMode.CALCULATING) return
+
         _itemCount.update { ItemCountUpdate(uiNodeId, item, itemCount, isInput) }
     }
 
@@ -595,5 +603,42 @@ class GraphEditorLogic {
                     calculateValuesFromItemCount(update.nodeId, update.item, count, update.isInput)
                 }
         }
+    }
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
+
+    fun loadItemsAndRecipes(){
+        scope.launch {
+            _graphMode.update { GraphMode.LOADING }
+
+            try {
+                val path = selectAndReadJsonFile()
+
+                if (path == null) {
+                    _errorMessage.update {
+                        "Json file not selected try again."
+                    }
+
+                    return@launch
+                }
+
+                _itemAndRecipeState.update {
+                    loadItemAndRecipe(path)
+                }
+
+                _errorMessage.update { null }
+            } catch (e: IllegalArgumentException) {
+                _errorMessage.update { e.message }
+            } catch (e: SerializationException) {
+                _errorMessage.update { e.message }
+            }
+
+            _graphMode.update { GraphMode.NORMAL }
+        }
+    }
+
+    fun okError() {
+        _errorMessage.update { null }
     }
 }

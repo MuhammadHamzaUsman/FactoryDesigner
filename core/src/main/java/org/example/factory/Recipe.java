@@ -1,7 +1,6 @@
 package org.example.factory;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class Recipe {
 
@@ -20,11 +19,17 @@ public class Recipe {
             throw new RuntimeException("Primary Output Item not found in output material map.");
         }
 
+        if(name.isBlank()) throw new RuntimeException("Recipe name should not be blank");
+
         this.name = name;
         this.machineName = machineName;
         this.inputMaterials = inputMaterials;
         this.outputMaterials = outputMaterials;
         this.primaryOutput = primaryOutput;
+    }
+
+    public static void resetCounter(){
+        ID_COUNTER = 0;
     }
 
     @Override
