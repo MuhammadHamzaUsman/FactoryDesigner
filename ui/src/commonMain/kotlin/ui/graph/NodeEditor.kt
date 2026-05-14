@@ -9,16 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import org.example.factory.Item
 import ui.logic.GraphEditorLogic
-import ui.model.UiNode
 import ui.modifier.panZoom
 import ui.screen.EdgeDrawer
 import ui.screen.EdgesList
@@ -92,8 +89,6 @@ fun GraphScreen(
                 nodeName = controller.getNodeName(id),
                 inputMaterialCount = controller.getInputMaterials(id) ,
                 outputMaterialCount = controller.getOutputMaterial(id),
-                onInputMaterialCountChange = { node: UiNode, item: Item, d: Double?, offset: Offset -> },
-                onOutputMaterialCountChange = { node: UiNode, item: Item, d: Double?, offset: Offset -> },
                 controller = controller,
                 containerCords = layoutCords,
             )

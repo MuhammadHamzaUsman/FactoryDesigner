@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import org.example.factory.Item
 import org.example.graph.node.SinkNode
 import org.example.graph.node.SourceNode
+import org.example.graph.node.TransformationNode
 import ui.composables.LabelTextField
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
@@ -43,8 +44,6 @@ fun NodeCard(
     nodeName: String,
     inputMaterialCount: LinkedHashMap<Item, Double?>,
     outputMaterialCount: LinkedHashMap<Item, Double?>,
-    onInputMaterialCountChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit,
-    onOutputMaterialCountChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit,
     controller: GraphEditorLogic,
     modifier: Modifier = Modifier,
     containerCords: LayoutCoordinates?
@@ -81,7 +80,6 @@ fun NodeCard(
                     controller = controller,
                     containerCords = containerCords,
                     items = inputMaterialCount,
-                    onValueChange = onInputMaterialCountChange,
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -103,10 +101,12 @@ fun NodeCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 4.dp)
                         .background(
                             color = MaterialTheme.colorScheme.tertiaryContainer,
                             shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(
+                            if(node is SinkNode || node is SourceNode) 4.dp else 0.dp
                         )
                         .drag(
                             key = uiNode.id,
@@ -129,31 +129,33 @@ fun NodeCard(
                         tint = MaterialTheme.colorScheme.onTertiaryContainer,
                         modifier = Modifier
                             .padding(4.dp)
-                            .align(Alignment.BottomEnd)
+                            .align(Alignment.CenterEnd)
                             .clickable{
                                 controller.removeNode(uiNode)
                             }
                     )
                 }
 
-                Spacer(
-                    modifier = Modifier
-                        .size(250.dp, 1.dp)
-                        .background(color = MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
-                        .padding(vertical = 8.dp)
-                )
+                if (node is TransformationNode) {
+                    Spacer(
+                        modifier = Modifier
+                            .size(250.dp, 1.dp)
+                            .background(color = MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
+                            .padding(vertical = 8.dp)
+                    )
 
-                LabelTextField(
-                    label = "Machine Count",
-                    value = textFieldValue,
-                    spacing = 8.dp,
-                    onDone = {
-                        if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
-                            controller.setMachineCount(uiNode.id, it)
-                        }
-                    },
-                    onValueChange = { textFieldValue = it }
-                )
+                    LabelTextField(
+                        label = "Machine Count",
+                        value = textFieldValue,
+                        spacing = 8.dp,
+                        onDone = {
+                            if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
+                                controller.setMachineCount(uiNode.id, it)
+                            }
+                        },
+                        onValueChange = { textFieldValue = it }
+                    )
+                }
             }
         }
         if(node !is SinkNode) {
@@ -168,7 +170,6 @@ fun NodeCard(
                     controller = controller,
                     containerCords = containerCords,
                     items = outputMaterialCount,
-                    onValueChange = onOutputMaterialCountChange,
                     modifier = Modifier.padding(8.dp)
                 )
             }

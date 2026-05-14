@@ -12,13 +12,16 @@ import org.example.graph.Edge
 import org.example.graph.GraphException
 import org.example.graph.GraphToLinearSystem
 import org.example.graph.node.*
+import org.example.math.LinearSystem
 import org.example.math.LinearSystemSolver
+import org.example.math.Variable
 import testState
 import ui.model.FilterOption
 import ui.model.UiNode
 import ui.model.toUiEdge
 import ui.model.toUiNode
 import ui.state.GraphMode
+import ui.state.ItemCountUpdate
 import ui.state.MachineCountUpdate
 import util.round
 import util.toDoubleRoundedStringOrEmpty
@@ -176,10 +179,10 @@ class GraphEditorLogic {
     fun getNodeName(nodeId: Long): String{
         return when(val node = graph.getNode(nodeId)){
             is TransformationNode -> node.recipe.name
-            is SplitterNode -> "Splitter"
-            is MergerNode -> "Merger"
-            is SourceNode -> "Source"
-            is SinkNode -> "Sink"
+            is SplitterNode -> "${node.item.name} - Splitter"
+            is MergerNode -> "${node.item.name} - Merger"
+            is SourceNode -> "${node.item.name} - Source"
+            is SinkNode -> "${node.item.name} - Sink"
             else -> "No Name"
         }
     }
@@ -358,7 +361,6 @@ class GraphEditorLogic {
     val edgeListOffset = _edgeListOffset.asStateFlow()
 
     private val _nodeId = MutableStateFlow<Long?>(null)
-    val nodeId = _nodeId.asStateFlow()
 
     private val _item = MutableStateFlow<Item?>(null)
     val item = _item.asStateFlow()
@@ -446,13 +448,13 @@ class GraphEditorLogic {
 
     fun calculateValuesFromMachineCount(nodeId: Long, machines: Double){
         _graphMode.update { GraphMode.CALCULATING }
-
         try{
-            val pair = GraphToLinearSystem.generateLinearSystem(graph)
-            val linearSystem = pair.first
-            val edgeVariableMap = pair.second
+            val node = graph.getNode(nodeId)
 
-            val recipe = (graph.getNode(nodeId) as TransformationNode).recipe
+            if(node !is TransformationNode) return
+
+            val (linearSystem, edgeVariableMap) = GraphToLinearSystem.generateLinearSystem(graph)
+            val recipe = node.recipe
 
             graph.forEachInputEdge(nodeId) {
                 linearSystem.injectVariablesValue(
@@ -468,22 +470,24 @@ class GraphEditorLogic {
                 )
             }
 
-            val solved = LinearSystemSolver.solveSystem(linearSystem)
-
-            val newEdgeValues = edgeVariableMap.mapValues { solved[it.value]?.round(2) ?: 0.0 }
-            calculateMachineCounts(newEdgeValues).forEach { (id, double) ->
-                _state.value.machineCount[id] = double.toDoubleRoundedStringOrEmpty(2)
-            }
-
-            _state.update { state ->
-                state.copy(edgesValue = newEdgeValues)
-            }
-
-            println(newEdgeValues)
+            executeSolverAndUpdate(linearSystem, edgeVariableMap)
         }
-        catch (e: GraphException){ }
+        catch (_: GraphException){ }
         finally {
             _graphMode.update { GraphMode.NORMAL }
+        }
+    }
+
+    private fun executeSolverAndUpdate(linearSystem: LinearSystem, edgeVariableMap: Map<Long, Variable>){
+        val solved = LinearSystemSolver.solveSystem(linearSystem)
+
+        val newEdgeValues = edgeVariableMap.mapValues { solved[it.value]?.round(2) ?: 0.0 }
+        calculateMachineCounts(newEdgeValues).forEach { (id, double) ->
+            _state.value.machineCount[id] = double.toDoubleRoundedStringOrEmpty(2)
+        }
+
+        _state.update { state ->
+            state.copy(edgesValue = newEdgeValues)
         }
     }
 
@@ -493,21 +497,23 @@ class GraphEditorLogic {
         var recipe: Recipe
 
         graph.forEachNode { node ->
-            if(node is TransformationNode){
-                recipe = node.recipe
+            when(node) {
+                is TransformationNode -> {
+                    recipe = node.recipe
 
-                graph.forEachInputEdge(node.id){ edge ->
-                    machineCounts.add(edgeValues[edge.id]!! / recipe.inputMaterials[edge.item]!!)
-                }
+                    graph.forEachInputEdge(node.id) { edge ->
+                        machineCounts.add(edgeValues[edge.id]!! / recipe.inputMaterials[edge.item]!!)
+                    }
 
-                graph.forEachOutputEdge(node.id){ edge ->
-                    machineCounts.add(edgeValues[edge.id]!! / recipe.outputMaterials[edge.item]!!)
-                }
+                    graph.forEachOutputEdge(node.id) { edge ->
+                        machineCounts.add(edgeValues[edge.id]!! / recipe.outputMaterials[edge.item]!!)
+                    }
 
-                if(machineCounts.isNotEmpty()) {
-                    nodeMachineMap[node.id] = machineCounts.sum() / machineCounts.size
+                    if (machineCounts.isNotEmpty()) {
+                        nodeMachineMap[node.id] = machineCounts.sum() / machineCounts.size
+                    }
+                    machineCounts.clear()
                 }
-                machineCounts.clear()
             }
         }
 
@@ -534,6 +540,55 @@ class GraphEditorLogic {
     private val _machineCount = MutableStateFlow<MachineCountUpdate?>(null)
     val machineCount = _machineCount.asStateFlow()
 
+    fun getNode(uiNodeId: Long): Node = graph.getNode(uiNodeId)
+
+    private var _itemCount = MutableStateFlow<ItemCountUpdate?>(null)
+    val itemCount = _itemCount.asStateFlow()
+
+    fun setItemCount(uiNodeId: Long, item: Item, itemCount: String, isInput: Boolean){
+        _itemCount.update { ItemCountUpdate(uiNodeId, item, itemCount, isInput) }
+    }
+
+    fun calculateValuesFromItemCount(uiNodeId: Long, item: Item, itemCount: Double, isInput: Boolean) {
+        when(val node = graph.getNode(uiNodeId)){
+            is TransformationNode -> {
+                val recipe = node.recipe
+                val materialCount = if(isInput) recipe.inputMaterials else recipe.outputMaterials
+                val machineCount = itemCount / (materialCount[item] ?: return)
+
+                setMachineCount(uiNodeId, machineCount.toString())
+            }
+
+            is SinkNode -> {
+                val inputEdges = graph.getInputEdges(node.id)
+
+                calculateFromSinkSourceNode(item, inputEdges, itemCount)
+            }
+
+            is SourceNode -> {
+                val outputEdges = graph.getOutputEdges(node.id)
+
+                calculateFromSinkSourceNode(item, outputEdges, itemCount)
+            }
+        }
+    }
+
+    private fun calculateFromSinkSourceNode(item: Item, edges: Set<Edge>, count: Double){
+        _graphMode.update { GraphMode.CALCULATING }
+
+        val (linearSystem, edgeVariableMap) = GraphToLinearSystem.generateLinearSystem(graph)
+
+        val edge = edges.find { edge ->
+            edge.item == item
+        } ?: return
+
+        linearSystem.injectVariablesValue(edgeVariableMap[edge.id]!!, count)
+
+        executeSolverAndUpdate(linearSystem, edgeVariableMap)
+
+        _graphMode.update { GraphMode.NORMAL }
+    }
+
     init{
         scope.launch {
             machineCount
@@ -544,7 +599,15 @@ class GraphEditorLogic {
                     calculateValuesFromMachineCount(update.nodeId, count)
                 }
         }
-    }
 
-    fun getNode(uiNodeId: Long): Node = graph.getNode(uiNodeId)
+        scope.launch {
+            itemCount
+                .debounce(500)
+                .filterNotNull()
+                .collectLatest { update ->
+                    val count = update.itemCount.toDoubleOrNull() ?: return@collectLatest
+                    calculateValuesFromItemCount(update.nodeId, update.item, count, update.isInput)
+                }
+        }
+    }
 }

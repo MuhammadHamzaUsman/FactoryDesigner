@@ -1,6 +1,8 @@
 package ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -32,6 +34,7 @@ fun SourceSinkCard(
                 width = 2.dp,
                 shape = RoundedCornerShape(8.dp)
             )
+            .padding(4.dp)
             .clickableWithOffset{
                 controller.addNode(item, it, isSource)
             }

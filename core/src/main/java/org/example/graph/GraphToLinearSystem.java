@@ -10,7 +10,6 @@ import org.example.math.LinearSystem;
 import org.example.math.Variable;
 import org.example.util.Pair;
 
-import java.text.CollationElementIterator;
 import java.util.*;
 
 public class GraphToLinearSystem {
@@ -145,8 +144,6 @@ public class GraphToLinearSystem {
             double itemEdgeCoefficient = recipe.inputMaterials.get(inputEdge.item);
             equation.insertTerm(variableMap.get(inputEdge.id), 1);
             equation.insertTerm(refreceVariable, -(itemEdgeCoefficient / referenceVariableCoefficient));
-            System.out.println(equation);
-            System.out.println();
             equations.add(equation);
         }
 
@@ -161,8 +158,6 @@ public class GraphToLinearSystem {
             double itemEdgeCoefficient = recipe.outputMaterials.get(outputEdge.item);
             equation.insertTerm(variableMap.get(outputEdge.id), 1);
             equation.insertTerm(refreceVariable, -(itemEdgeCoefficient / referenceVariableCoefficient));
-            System.out.println(equation);
-            System.out.println();
             equations.add(equation);
         }
         return equations;

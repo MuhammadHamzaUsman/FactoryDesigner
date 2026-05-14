@@ -9,12 +9,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.compose.AppTheme
 import org.example.factory.Item
 import org.example.factory.Recipe
@@ -51,7 +53,13 @@ fun MachineSelectionMenu(
         TextField(
             value = searchStr,
             onValueChange = controller::updateSearchText,
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 16.sp),
+            colors = TextFieldDefaults.colors(
+                unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer
+            ),
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
@@ -60,7 +68,7 @@ fun MachineSelectionMenu(
                     color = MaterialTheme.colorScheme.outline,
                     shape = RoundedCornerShape(8.dp)
                 )
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(8.dp)),
         )
 
         Column(

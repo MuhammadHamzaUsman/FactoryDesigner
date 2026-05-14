@@ -14,6 +14,14 @@ public class Pair<T, U> {
         this.second = second;
     }
 
+    public T component1(){
+        return first;
+    }
+
+    public U component2(){
+        return second;
+    }
+
     @Override
     public String toString() {
         return "Pair{" +

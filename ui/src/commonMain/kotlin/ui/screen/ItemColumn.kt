@@ -15,8 +15,8 @@ import org.example.factory.Item
 import ui.composables.LabelTextField
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
-import util.round
 import util.screenToWorld
+import util.toDoubleRoundedStringOrEmpty
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -26,23 +26,36 @@ fun ItemColumn(
     controller: GraphEditorLogic,
     containerCords: LayoutCoordinates?,
     items: LinkedHashMap<Item, Double?>,
-    modifier: Modifier = Modifier,
-    onValueChange: (uiNode: UiNode, item: Item, newValue: Double?, newPositionCenter: Offset) -> Unit
+    modifier: Modifier = Modifier
 ){
+    var textField by remember { mutableStateOf("") }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier
     ) {
         for ((item, count) in items) {
 
+            LaunchedEffect(count){
+                val formatted = count.toDoubleRoundedStringOrEmpty(2)
+
+                if(textField != formatted){
+                    textField = formatted
+                }
+            }
+
             var nodePos by remember(item, uiNode.position) { mutableStateOf(Offset(0f, 0f)) }
 
             LabelTextField(
                 label = item.name,
-                value = count?.round(2)?.toString() ?: "",
+                value = textField,
                 spacing = 8.dp,
-                onDone = {},
-                onValueChange = { onValueChange(uiNode, item, it.toDoubleOrNull(), nodePos) },
+                onDone = {
+                    if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
+                        controller.setItemCount(uiNode.id, item, it, isInput)
+                    }
+                },
+                onValueChange = { textField = it },
                 modifier = Modifier
                     .onGloballyPositioned { childCords ->
                         if (containerCords != null && childCords.isAttached) {
