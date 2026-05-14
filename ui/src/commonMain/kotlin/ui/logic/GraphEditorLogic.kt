@@ -140,17 +140,17 @@ class GraphEditorLogic {
         }
 
     fun getListOfItem(searchText: String, filterOption: FilterOption): List<Item> {
-        if (filterOption == FilterOption.Source || filterOption == FilterOption.Sink) {
+        return when(filterOption){
+            FilterOption.Source, FilterOption.Sink, FilterOption.SPLITTER, FilterOption.MERGER ->{
+                val lower = searchText.lowercase()
 
-            val lower = searchText.lowercase()
-
-            return itemAndRecipeState.items.values
-                .filter {
-                    it.name.lowercase().contains(lower)
-                }
+                itemAndRecipeState.items.values
+                    .filter {
+                        it.name.lowercase().contains(lower)
+                    }
+            }
+            else -> emptyList()
         }
-
-        return emptyList()
     }
 
     fun getListOfRecipe(search: String, filterOption: FilterOption): List<Recipe> {
@@ -206,23 +206,6 @@ class GraphEditorLogic {
         return map
     }
 
-    fun getMaterialCount(edges: Set<Edge>, item: Item): LinkedHashMap<Item, Double?>{
-        val map = LinkedHashMap<Item, Double?>()
-        map[item] = null
-
-        var prev: Double?
-        var curr: Double?
-
-        for (edge in edges) {
-            prev = map[edge.item] ?: 0.0
-            curr = _state.value.edgesValue?.get(edge.id) ?: continue
-
-            map[edge.item] = prev + curr
-        }
-
-        return map
-    }
-
     fun getInputMaterials(nodeId: Long): LinkedHashMap<Item, Double?> {
         val edges = graph.getInputEdges(nodeId)
         val items = when(val node = graph.getNode(nodeId)){
@@ -262,10 +245,6 @@ class GraphEditorLogic {
 
             state
         }
-    }
-
-    companion object {
-        val emptyMap = LinkedHashMap<Item, Double?>()
     }
 
     private val _graphMode = MutableStateFlow(GraphMode.NORMAL)
@@ -520,15 +499,18 @@ class GraphEditorLogic {
         return nodeMachineMap
     }
 
-    fun clearScope(){
-        scope.cancel()
-    }
-
-    fun addNode(item: Item, offset: Offset, isSource: Boolean) {
+    fun addNode(item: Item, offset: Offset, type: NodeType) {
         if(graphMode.value == GraphMode.CALCULATING) return
 
         _state.update { state ->
-            val node = if(isSource) SourceNode(item) else SinkNode(item)
+            val node = when(type){
+                NodeType.SOURCE -> SourceNode(item)
+                NodeType.SINK -> SinkNode(item)
+                NodeType.SPLITTER -> SplitterNode(item)
+                NodeType.MERGER -> MergerNode(item)
+                else -> return
+            }
+
             graph.addNode(node)
 
             state.nodes[node.id] = node.toUiNode(offset)
@@ -587,6 +569,10 @@ class GraphEditorLogic {
         executeSolverAndUpdate(linearSystem, edgeVariableMap)
 
         _graphMode.update { GraphMode.NORMAL }
+    }
+
+    fun updateEdgeWeight(edgeId: Long, weight: Float) {
+        graph.getEdge(edgeId).weight = weight
     }
 
     init{

@@ -19,6 +19,13 @@ public class Edge {
     // it must be >= 1
     public float weight = 1;
 
+    public Edge(Item item, Node source, Node destination, float weight) {
+        this.item = item;
+        this.source = source;
+        this.destination = destination;
+        this.weight = weight;
+    }
+
     public Edge(Node source, Item item, Node destination) {
         if(source == null && destination == null){
             throw new RuntimeException("both source and destination can not be null");

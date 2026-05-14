@@ -20,8 +20,9 @@ import androidx.compose.ui.unit.sp
 import com.example.compose.AppTheme
 import org.example.factory.Item
 import org.example.factory.Recipe
+import org.example.graph.node.NodeType
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import ui.composables.FixedLabelButton
+import ui.composables.ThemedButton
 import ui.composables.ThemedRadioButton
 import ui.logic.GraphEditorLogic
 import ui.model.FilterOption
@@ -84,11 +85,11 @@ fun MachineSelectionMenu(
                     )
                     .padding(4.dp)
             ){
-                for (i in 0..<FilterOption.entries.size step 3) {
+                for (i in 0..<FilterOption.entries.size step 4) {
                     Row{
                         for (option in FilterOption.entries.subList(
                             i,
-                            (i + 3).coerceAtMost(FilterOption.entries.size)
+                            (i + 4).coerceAtMost(FilterOption.entries.size)
                         )) {
                             ThemedRadioButton(
                                 label = option.text,
@@ -107,14 +108,6 @@ fun MachineSelectionMenu(
                     }
                 }
             }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                FixedLabelButton("Splitter")
-                FixedLabelButton("Merger")
-            }
         }
 
         LazyVerticalGrid(
@@ -130,14 +123,34 @@ fun MachineSelectionMenu(
                 }
 
                 FilterOption.Source -> {
-                    items(filteredItems, key = Item::id) {
-                        SourceSinkCard( true, it, controller)
+                    items(filteredItems, key = Item::id) {item ->
+                        ThemedButton(item.name) { offset ->
+                            controller.addNode(item, offset, NodeType.SOURCE)
+                        }
                     }
                 }
 
                 FilterOption.Sink -> {
-                    items(filteredItems, key = Item::id) {
-                        SourceSinkCard( false, it, controller)
+                    items(filteredItems, key = Item::id) {item ->
+                        ThemedButton(item.name) { offset ->
+                            controller.addNode(item, offset, NodeType.SINK)
+                        }
+                    }
+                }
+
+                FilterOption.MERGER -> {
+                    items(filteredItems, key = Item::id) {item ->
+                        ThemedButton(item.name) { offset ->
+                            controller.addNode(item, offset, NodeType.MERGER)
+                        }
+                    }
+                }
+
+                FilterOption.SPLITTER -> {
+                    items(filteredItems, key = Item::id) {item ->
+                        ThemedButton(item.name) { offset ->
+                            controller.addNode(item, offset, NodeType.SPLITTER)
+                        }
                     }
                 }
 

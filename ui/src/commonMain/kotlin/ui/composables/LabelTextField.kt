@@ -23,6 +23,7 @@ fun LabelTextField(
     label: String,
     value: String,
     spacing: Dp,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
     onValueChange: (String) -> Unit,
     onDone: (String) -> Unit
@@ -38,6 +39,7 @@ fun LabelTextField(
         )
 
         BasicTextField(
+            enabled = enabled,
             value = value,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done,

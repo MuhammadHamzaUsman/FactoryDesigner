@@ -11,16 +11,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.text.style.TextAlign
@@ -106,7 +99,7 @@ fun NodeCard(
                             shape = RoundedCornerShape(12.dp)
                         )
                         .padding(
-                            if(node is SinkNode || node is SourceNode) 4.dp else 0.dp
+                            if(node is TransformationNode) 0.dp else 4.dp
                         )
                         .drag(
                             key = uiNode.id,
@@ -148,12 +141,12 @@ fun NodeCard(
                         label = "Machine Count",
                         value = textFieldValue,
                         spacing = 8.dp,
+                        onValueChange = { textFieldValue = it },
                         onDone = {
                             if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
                                 controller.setMachineCount(uiNode.id, it)
                             }
                         },
-                        onValueChange = { textFieldValue = it }
                     )
                 }
             }

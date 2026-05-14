@@ -12,6 +12,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import org.example.factory.Item
+import org.example.graph.node.NodeType
 import ui.composables.LabelTextField
 import ui.logic.GraphEditorLogic
 import ui.model.UiNode
@@ -50,12 +51,10 @@ fun ItemColumn(
                 label = item.name,
                 value = textField,
                 spacing = 8.dp,
-                onDone = {
-                    if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
-                        controller.setItemCount(uiNode.id, item, it, isInput)
-                    }
+                enabled = when(uiNode.type){
+                    NodeType.SPLITTER, NodeType.MERGER -> false
+                    else -> true
                 },
-                onValueChange = { textField = it },
                 modifier = Modifier
                     .onGloballyPositioned { childCords ->
                         if (containerCords != null && childCords.isAttached) {
@@ -77,7 +76,13 @@ fun ItemColumn(
                             controller.handleOutputConnectorClick(uiNode.id, item, nodePos)
                         }
                     }
-                    .width(150.dp)
+                    .width(150.dp),
+                onValueChange = { textField = it },
+                onDone = {
+                    if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
+                        controller.setItemCount(uiNode.id, item, it, isInput)
+                    }
+                },
             )
         }
     }

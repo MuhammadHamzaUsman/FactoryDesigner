@@ -8,15 +8,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +40,8 @@ fun EdgesList(
     controller: GraphEditorLogic,
     modifier: Modifier = Modifier
 ){
+    var textField by remember { mutableStateOf("") }
+
     LazyColumn(
         contentPadding = PaddingValues(8.dp),
         modifier = modifier
@@ -108,15 +114,39 @@ fun EdgesList(
                         .align(Alignment.CenterVertically)
                 )
 
-                Text(
-                    text = edge.item.name,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelLarge,
-                    lineHeight = 16.sp,
+                Column(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 4.dp)
-                )
+                ){
+                    Text(
+                        text = edge.item.name,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelLarge,
+                        lineHeight = 16.sp,
+                    )
+
+                    TextField(
+                        value = textField,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (textField.isNotEmpty() && textField.matches(Regex("^\\d*\\.?\\d*$"))) {
+                                    controller.updateEdgeWeight(edge.id, textField.toFloatOrNull() ?: return@KeyboardActions)
+                                }
+                                else{
+                                    textField = ""
+                                }
+                            }
+                        ),
+                        onValueChange = {
+                            textField = it
+                        }
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier
