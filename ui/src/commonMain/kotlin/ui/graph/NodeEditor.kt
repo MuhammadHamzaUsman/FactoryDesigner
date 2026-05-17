@@ -1,15 +1,10 @@
 package ui.graph
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,19 +14,17 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ui.logic.GraphEditorLogic
 import ui.modifier.panZoom
 import ui.screen.*
+import ui.state.AppState
 import ui.state.GraphMode
 import util.screenToWorld
 import util.toIntOffset
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun GraphScreen(
+fun NodeEditor(
     controller: GraphEditorLogic,
     modifier: Modifier = Modifier
 ){
@@ -56,38 +49,10 @@ fun GraphScreen(
     val mode by controller.graphMode.collectAsState()
     var layoutCords: LayoutCoordinates? by remember { mutableStateOf(null) }
 
-    val errorMessage by controller.errorMessage.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize()
     ){
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp)
-                )
-                .padding(4.dp, 0.dp, 4.dp, 4.dp)
-        ) {
-            Text(
-                style = MaterialTheme.typography.titleMedium,
-                text = "Load Recipe and Items",
-                fontWeight = FontWeight.Bold,
-                lineHeight = 16.sp,
-                color = MaterialTheme.colorScheme.onTertiary,
-                modifier = Modifier
-                    .clickable{
-                        controller.loadItemsAndRecipes()
-                    }
-                    .background(
-                        color = MaterialTheme.colorScheme.tertiary,
-                        shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp)
-                    )
-                    .padding(4.dp)
-            )
-        }
-
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -147,15 +112,6 @@ fun GraphScreen(
                         .offset { edgeListOffset.toIntOffset() }
                         .draggable2D(draggableStateEdgeList)
                 )
-            }
-
-            errorMessage?.let {
-                Error(
-                    message = it,
-                    modifier = Modifier.align(Alignment.Center)
-                ){
-                    controller.okError()
-                }
             }
         }
     }

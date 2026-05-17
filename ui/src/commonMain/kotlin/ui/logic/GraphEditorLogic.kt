@@ -6,6 +6,7 @@ import itemAndRecipe
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.SerializationException
+import org.example.data.ItemAndRecipeState
 import org.example.factory.Item
 import org.example.factory.Recipe
 import org.example.graph.Edge
@@ -16,6 +17,9 @@ import org.example.graph.node.*
 import org.example.math.LinearSystem
 import org.example.math.LinearSystemSolver
 import org.example.math.Variable
+import save.AppSave
+import save.dto.CountersSave
+import save.dto.toSave
 import testState
 import ui.io.loadItemAndRecipe
 import ui.io.selectAndReadJsonFile
@@ -23,6 +27,7 @@ import ui.model.FilterOption
 import ui.model.UiNode
 import ui.model.toUiEdge
 import ui.model.toUiNode
+import ui.state.GraphEditorLayoutState
 import ui.state.GraphMode
 import ui.state.ItemCountUpdate
 import ui.state.MachineCountUpdate
@@ -31,11 +36,15 @@ import util.toDoubleRoundedStringOrEmpty
 import kotlin.math.pow
 
 @OptIn(FlowPreview::class)
-class GraphEditorLogic {
-    private var _state = MutableStateFlow(testState)
+class GraphEditorLogic(
+    private val graph: Graph,
+    itemAndRecipeState: ItemAndRecipeState,
+    graphEditorLayoutState: GraphEditorLayoutState
+) {
+    private var _state = MutableStateFlow(graphEditorLayoutState)
     val state = _state.asStateFlow()
 
-    private val _itemAndRecipeState = MutableStateFlow(itemAndRecipe)
+    private val _itemAndRecipeState = MutableStateFlow(itemAndRecipeState)
     val itemAndRecipeState = _itemAndRecipeState.asStateFlow()
 
     fun updateZoom(scrollDelta: Float, cursor: Offset){
@@ -117,8 +126,6 @@ class GraphEditorLogic {
     }
 
     fun setRecipeMenuDisplayed(displayed: Boolean){
-        if(graphMode.value == GraphMode.LOADING) return
-
         _isRecipeMenuDisplayed.update { displayed }
     }
 
@@ -179,8 +186,6 @@ class GraphEditorLogic {
             else -> {emptyList()}
         }
     }
-
-    private val graph = Graph()
 
     fun getNodeName(nodeId: Long): String{
         return when(val node = graph.getNode(nodeId)){
@@ -271,7 +276,7 @@ class GraphEditorLogic {
 
             tempEdge!!.destination = graph.getNode(nodeId)
             endEdgeDrawing(offset, false)
-        } else if(mode == GraphMode.CALCULATING){
+        } else{
             resetToNormal()
             return
         }
@@ -293,7 +298,7 @@ class GraphEditorLogic {
             tempEdge!!.source = graph.getNode(nodeId)
             endEdgeDrawing(offset, true)
         }
-        else if(mode == GraphMode.CALCULATING){
+        else{
             resetToNormal()
             return
         }
@@ -331,6 +336,7 @@ class GraphEditorLogic {
     }
 
     fun addPointToEdge(offset: Offset){
+        if(graphMode.value == GraphMode.CALCULATING) return
         pointsList.add(offset)
     }
 
@@ -605,40 +611,50 @@ class GraphEditorLogic {
         }
     }
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage = _errorMessage.asStateFlow()
-
-    fun loadItemsAndRecipes(){
-        scope.launch {
-            _graphMode.update { GraphMode.LOADING }
-
-            try {
-                val path = selectAndReadJsonFile()
-
-                if (path == null) {
-                    _errorMessage.update {
-                        "Json file not selected try again."
-                    }
-
-                    return@launch
-                }
-
-                _itemAndRecipeState.update {
-                    loadItemAndRecipe(path)
-                }
-
-                _errorMessage.update { null }
-            } catch (e: IllegalArgumentException) {
-                _errorMessage.update { e.message }
-            } catch (e: SerializationException) {
-                _errorMessage.update { e.message }
-            }
-
-            _graphMode.update { GraphMode.NORMAL }
-        }
+    fun generateError(){
+        _graphMode.update { GraphMode.ERROR }
     }
 
     fun okError() {
-        _errorMessage.update { null }
+        _graphMode.update { GraphMode.NORMAL }
+    }
+
+    fun generateAppSave(): AppSave {
+        _graphMode.update { GraphMode.IO }
+
+        val save = AppSave(
+            CountersSave.createFromCurrentValues(),
+            graph.toSave(),
+            state.value.toSave(),
+            itemAndRecipeState.value.toSave()
+        )
+
+        _graphMode.update { GraphMode.NORMAL }
+        return save
+    }
+
+    // only take those recipes and items that have unique case-sensitive name
+    fun mergeItemAndRecipeState(newItemAndRecipeState: ItemAndRecipeState) {
+        _graphMode.update { GraphMode.IO }
+        val itemAndRecipeState = itemAndRecipeState.value
+        val itemNames = itemAndRecipeState.items.values.mapTo(mutableSetOf()){ it.name }
+
+        for (item in newItemAndRecipeState.items.values) {
+            if(item.name in itemNames) continue
+
+            itemAndRecipeState.items[item.id] = item
+            itemNames.add(item.name)
+        }
+
+        val recipeNames = itemAndRecipeState.recipes.values.mapTo(mutableSetOf()){ it.name }
+
+        for (recipe in newItemAndRecipeState.recipes.values) {
+            if(recipe.name in recipeNames) continue
+
+            itemAndRecipeState.recipes[recipe.id] = recipe
+            recipeNames.add(recipe.name)
+        }
+
+        _graphMode.update { GraphMode.NORMAL }
     }
 }

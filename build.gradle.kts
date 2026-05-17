@@ -22,7 +22,7 @@ subprojects {
 
     // Force Java 21 too (IMPORTANT FIX)
     plugins.withId("java") {
-        extensions.configure<org.gradle.api.plugins.JavaPluginExtension> {
+        extensions.configure<JavaPluginExtension> {
             toolchain {
                 languageVersion.set(JavaLanguageVersion.of(21))
             }

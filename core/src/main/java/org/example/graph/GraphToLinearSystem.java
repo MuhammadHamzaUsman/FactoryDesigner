@@ -34,7 +34,11 @@ public class GraphToLinearSystem {
                         throw new GraphException("Merger can only hva one output");
                     }
 
-                    linearSystem.insertEquation(buildEquationsFor(mergerNode, inputEdges, outputEdges.getFirst(), variableMapping));
+                    equation = buildEquationsFor(mergerNode, inputEdges, outputEdges.getFirst(), variableMapping);
+
+                    for (Equation inputEquations : equation) {
+                        linearSystem.insertEquation(inputEquations);
+                    }
                 }
                 case SplitterNode splitterNode -> {
                     if (inputEdges.size() > 1) {
@@ -104,19 +108,47 @@ public class GraphToLinearSystem {
         return equations;
     }
 
-    private static Equation buildEquationsFor(MergerNode node, List<Edge> inputEdges, Edge outputEdge, Map<Long, Variable> variableMap){
+    private static List<Equation> buildEquationsFor(MergerNode node, List<Edge> inputEdges, Edge outputEdge, Map<Long, Variable> variableMap){
+//        Equation equation = new Equation();
+//
+//        for (Edge inputEdge : inputEdges) {
+//            if(!inputEdge.item.equals(node.item)) throw new GraphException("Input Edges should have same item as of merger");
+//
+//            equation.insertTerm(variableMap.get(inputEdge.id), 1);
+//        }
+//
+//        if(!outputEdge.item.equals(node.item)) throw new GraphException("Output Edge should have same item as of merger");
+//        equation.insertTerm(variableMap.get(outputEdge.id), -1);
+//
+//        return equation;
+
+        List<Equation> equations = new ArrayList<>();
         Equation equation = new Equation();
-
-        for (Edge inputEdge : inputEdges) {
-            if(!inputEdge.item.equals(node.item)) throw new GraphException("Input Edges should have same item as of merger");
-
-            equation.insertTerm(variableMap.get(inputEdge.id), 1);
-        }
 
         if(!outputEdge.item.equals(node.item)) throw new GraphException("Output Edge should have same item as of merger");
         equation.insertTerm(variableMap.get(outputEdge.id), -1);
 
-        return equation;
+        for (Edge inputEdge : inputEdges) {
+            if(!inputEdge.item.equals(node.item)) throw new GraphException("Input Edge should have same item as of merger");
+            equation.insertTerm(variableMap.get(inputEdge.id), 1);
+        }
+
+        equations.add(equation);
+
+        Edge referenceEdge = inputEdges.getFirst();
+        Variable referenceVariable = variableMap.get(referenceEdge.id);
+        double referenceWight = referenceEdge.weight;
+
+        double weightSum = inputEdges.stream().mapToDouble(edge -> edge.weight).sum();
+        for (Edge edge : inputEdges.subList(1, inputEdges.size())) {
+            equation = new Equation();
+            equation.insertTerm(variableMap.get(edge.id), referenceWight / weightSum);
+            equation.insertTerm(referenceVariable, -(edge.weight / weightSum));
+
+            equations.add(equation);
+        }
+
+        return equations;
     }
 
     private static List<Equation> buildEquationsFor(TransformationNode node, List<Edge> inputEdges, List<Edge> outputEdges, Map<Long, Variable> variableMap){

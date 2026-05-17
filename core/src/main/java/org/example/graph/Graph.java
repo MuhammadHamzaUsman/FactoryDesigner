@@ -212,8 +212,8 @@ public class Graph {
     }
 
     public static class EdgeHolder{
-        Set<Edge> inputEdges;
-        Set<Edge> outputEdges;
+        public Set<Edge> inputEdges;
+        public Set<Edge> outputEdges;
 
         public EdgeHolder() {
             inputEdges = new HashSet<>();

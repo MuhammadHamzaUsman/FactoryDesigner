@@ -1,8 +1,9 @@
 package ui.state
 
 enum class GraphMode {
-    LOADING,
+    ERROR,
     NORMAL,
     EDGE_DRAWING,
-    CALCULATING;
+    CALCULATING,
+    IO;
 }

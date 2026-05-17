@@ -10,6 +10,11 @@ public class SplitterNode extends Node {
         this.item = item;
     }
 
+    public SplitterNode(long id, Item item) {
+        super(id, NodeType.SPLITTER);
+        this.item = item;
+    }
+
     @Override
     public String[] getName() {
         return new String[]{"Sink"};

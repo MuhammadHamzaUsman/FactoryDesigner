@@ -22,10 +22,6 @@ public class LinearSystemSolver {
         QRDecomposition decomposition = new QRDecomposition(matrix);
         DecompositionSolver solver = decomposition.getSolver();
 
-        if (!solver.isNonSingular()) {
-            throw new RuntimeException("System is not solvable");
-        }
-
         RealVector solution = solver.solve(vector);
 
         Map<Variable, Double> variableAnswers = new HashMap<>();

@@ -8,18 +8,30 @@ import java.util.Objects;
 public class Item {
 
     private static long ID_COUNTER = 0;
-    public transient final long id = ID_COUNTER++;
+    public final long id;
 
     public final String name;
 
     public Item(String name) {
+        this(ID_COUNTER++, name);
+    }
+
+    public Item(long id, String name){
         if(name.isBlank()) throw new RuntimeException("Item name should not be blank");
 
         this.name = name;
+        this.id = id;
+    }
+    public static void setCounter(long value){
+        ID_COUNTER = value;
     }
 
-    public static void resetCounter(){
-        ID_COUNTER = 0;
+    public static long getCounter() {
+        return ID_COUNTER;
+    }
+
+    public static void setIdCounter(long idCounter) {
+        ID_COUNTER = idCounter;
     }
 
     @Override

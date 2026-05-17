@@ -6,7 +6,7 @@ import org.example.graph.node.Node;
 public class Edge {
 
     private static long ID_COUNTER = 0;
-    public final long id = ID_COUNTER++;
+    public final long id;
     public Node source;
 
     public final Item item;
@@ -20,13 +20,26 @@ public class Edge {
     public float weight = 1;
 
     public Edge(Node source, Item item, Node destination) {
+        this(ID_COUNTER++, source, item, destination);
+    }
+
+    public Edge(long id, Node source, Item item, Node destination) {
         if(source == null && destination == null){
             throw new RuntimeException("both source and destination can not be null");
         }
 
+        this.id = id;
         this.source = source;
         this.item = item;
         this.destination = destination;
+    }
+
+    public static void setCounter(long value){
+        ID_COUNTER = value;
+    }
+
+    public static long getCounter(){
+        return ID_COUNTER;
     }
 
     @Override

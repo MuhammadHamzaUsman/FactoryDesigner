@@ -13,19 +13,25 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.compose.AppTheme
+import org.example.data.ItemAndRecipeState
 import org.example.factory.Item
 import org.example.factory.Recipe
+import org.example.graph.Graph
 import org.example.graph.node.NodeType
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import ui.composables.ThemedButton
 import ui.composables.ThemedRadioButton
 import ui.logic.GraphEditorLogic
+import ui.model.Camera
 import ui.model.FilterOption
+import ui.state.GraphEditorLayoutState
 
 @Composable
 fun MachineSelectionMenu(
@@ -165,6 +171,18 @@ fun MachineSelectionMenu(
 @Composable
 fun PreviewMachineSelectionMenu(){
     AppTheme {
-        MachineSelectionMenu(GraphEditorLogic())
+        MachineSelectionMenu(
+            controller = GraphEditorLogic(
+                Graph(),
+                ItemAndRecipeState(LinkedHashMap(), LinkedHashMap()),
+                GraphEditorLayoutState(
+                    mutableStateMapOf(),
+                    mutableStateMapOf(),
+                    Camera(Offset.Zero , 1f),
+                    null,
+                    mutableStateMapOf()
+                )
+            )
+        )
     }
 }

@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 public class Recipe {
 
     private static long ID_COUNTER = 0;
-    public final long id = ID_COUNTER++;
+    public final long id;
     public String name;
 
     public String machineName;
@@ -15,12 +15,17 @@ public class Recipe {
     public Item primaryOutput;
 
     public Recipe(String name, String machineName, LinkedHashMap<Item, Double> inputMaterials, LinkedHashMap<Item, Double> outputMaterials, Item primaryOutput) {
+        this(ID_COUNTER++, name, machineName, inputMaterials, outputMaterials, primaryOutput);
+    }
+
+    public Recipe(long id, String name, String machineName, LinkedHashMap<Item, Double> inputMaterials, LinkedHashMap<Item, Double> outputMaterials, Item primaryOutput) {
         if(!outputMaterials.containsKey(primaryOutput)){
             throw new RuntimeException("Primary Output Item not found in output material map.");
         }
 
         if(name.isBlank()) throw new RuntimeException("Recipe name should not be blank");
 
+        this.id = id;
         this.name = name;
         this.machineName = machineName;
         this.inputMaterials = inputMaterials;
@@ -28,8 +33,12 @@ public class Recipe {
         this.primaryOutput = primaryOutput;
     }
 
-    public static void resetCounter(){
-        ID_COUNTER = 0;
+    public static void setCounter(long value){
+        ID_COUNTER = value;
+    }
+
+    public static long getCounter(){
+        return ID_COUNTER;
     }
 
     @Override

@@ -10,6 +10,11 @@ public class TransformationNode extends Node {
         this.recipe = recipe;
     }
 
+    public TransformationNode(long id, Recipe recipe) {
+        super(id, NodeType.TRANSFORMATION);
+        this.recipe = recipe;
+    }
+
     @Override
     public String[] getName() {
         return new String[]{recipe.machineName, recipe.name};

@@ -10,6 +10,11 @@ public class SourceNode extends Node{
         this.item = item;
     }
 
+    public SourceNode(long id, Item item) {
+        super(id, NodeType.SOURCE);
+        this.item = item;
+    }
+
     @Override
     public String[] getName() {
         return new String[]{"Source"};

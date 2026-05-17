@@ -10,6 +10,11 @@ public class SinkNode extends Node {
         this.item = item;
     }
 
+    public SinkNode(long id, Item item) {
+        super(id, NodeType.SINK);
+        this.item = item;
+    }
+
     @Override
     public String[] getName() {
         return new String[] {"Splitter"};

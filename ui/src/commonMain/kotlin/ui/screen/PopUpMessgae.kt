@@ -18,8 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Error(
+fun PopUpMessage(
     message: String,
+    isError: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ){
@@ -29,11 +30,11 @@ fun Error(
         modifier = modifier
             .border(
                 width = 2.dp,
-                color = MaterialTheme.colorScheme.onError,
+                color = if(isError) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface,
                 shape = RoundedCornerShape(8.dp)
             )
             .background(
-                color = MaterialTheme.colorScheme.error,
+                color = if(isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surfaceContainerHighest,
                 shape = RoundedCornerShape(8.dp)
             )
             .padding(8.dp)
@@ -41,14 +42,14 @@ fun Error(
         Icon(
             imageVector = Icons.Filled.Warning,
             contentDescription = "Error: $message",
-            tint = MaterialTheme.colorScheme.onError
+            tint = if(isError) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface
         )
 
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
             lineHeight = 14.sp,
-            color = MaterialTheme.colorScheme.onError,
+            color = if(isError) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface,
             softWrap = true,
             textAlign = TextAlign.Center,
             modifier = Modifier.width(300.dp)
@@ -61,7 +62,7 @@ fun Error(
             onClick = onClick,
             border = BorderStroke(
                 width = 2.dp,
-                color = MaterialTheme.colorScheme.onError
+                color = if(isError) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface
             ),
             contentPadding = PaddingValues(0.dp)
         ){
@@ -70,7 +71,7 @@ fun Error(
                 style = MaterialTheme.typography.bodyMedium,
                 lineHeight = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onError,
+                color = if(isError) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurface,
                 softWrap = true
             )
         }

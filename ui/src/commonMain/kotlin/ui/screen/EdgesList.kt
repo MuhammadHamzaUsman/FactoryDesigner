@@ -20,18 +20,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.compose.AppTheme
 import itemAndRecipe
+import org.example.data.ItemAndRecipeState
 import org.example.factory.Item
 import org.example.graph.Edge
+import org.example.graph.Graph
 import org.example.graph.node.SplitterNode
 import org.example.graph.node.TransformationNode
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import ui.logic.GraphEditorLogic
+import ui.model.Camera
+import ui.state.GraphEditorLayoutState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -221,7 +226,17 @@ fun EdgesListPreview(){
             edgesList = listOf(
                 Edge(TransformationNode(itemAndRecipe.recipes[0L]!!), Item("Scrap"), SplitterNode(Item("Scrap")))
             ),
-            controller = GraphEditorLogic(),
+            controller = GraphEditorLogic(
+                Graph(),
+                ItemAndRecipeState(LinkedHashMap(), LinkedHashMap()),
+                GraphEditorLayoutState(
+                    mutableStateMapOf(),
+                    mutableStateMapOf(),
+                    Camera(Offset.Zero , 1f),
+                    null,
+                    mutableStateMapOf()
+                )
+            ),
         )
     }
 }

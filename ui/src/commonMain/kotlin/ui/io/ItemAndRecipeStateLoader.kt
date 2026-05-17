@@ -35,9 +35,6 @@ fun loadItemAndRecipe(jsonString: String): ItemAndRecipeState {
     val factoryRecord: FactoryRecord = Json.decodeFromString(jsonString)
     var name: String
 
-    Item.resetCounter()
-    Recipe.resetCounter()
-
     var item: Item
     val items = LinkedHashMap<Long, Item>()
     val itemRecords = mutableMapOf<String, Item>()
@@ -106,5 +103,5 @@ fun loadItemAndRecipe(jsonString: String): ItemAndRecipeState {
         recipes[recipe.id] = recipe
     }
 
-    return ItemAndRecipeState(items, recipes).also { println(it) }
+    return ItemAndRecipeState(items, recipes)
 }

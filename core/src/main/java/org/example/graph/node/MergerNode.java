@@ -10,6 +10,11 @@ public class MergerNode extends Node {
         this.item = item;
     }
 
+    public MergerNode(long id, Item item) {
+        super(id, NodeType.MERGER);
+        this.item = item;
+    }
+
     @Override
     public String[] getName() {
         return new String[]{"Merger"};
