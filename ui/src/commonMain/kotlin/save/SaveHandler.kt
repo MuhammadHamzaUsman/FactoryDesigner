@@ -2,12 +2,7 @@ package save
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.example.data.ItemAndRecipeState
-import org.example.graph.Graph
-import save.dto.CountersSave
-import save.dto.toSave
 import ui.logic.GraphEditorLogic
-import ui.state.GraphEditorLayoutState
 import java.io.File
 
 object SaveHandler {

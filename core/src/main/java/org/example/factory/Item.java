@@ -30,10 +30,6 @@ public class Item {
         return ID_COUNTER;
     }
 
-    public static void setIdCounter(long idCounter) {
-        ID_COUNTER = idCounter;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

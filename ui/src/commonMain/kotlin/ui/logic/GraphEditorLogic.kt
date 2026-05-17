@@ -2,10 +2,8 @@ package ui.logic
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
-import itemAndRecipe
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.SerializationException
 import org.example.data.ItemAndRecipeState
 import org.example.factory.Item
 import org.example.factory.Recipe
@@ -20,9 +18,6 @@ import org.example.math.Variable
 import save.AppSave
 import save.dto.CountersSave
 import save.dto.toSave
-import testState
-import ui.io.loadItemAndRecipe
-import ui.io.selectAndReadJsonFile
 import ui.model.FilterOption
 import ui.model.UiNode
 import ui.model.toUiEdge

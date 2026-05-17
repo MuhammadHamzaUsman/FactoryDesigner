@@ -5,7 +5,6 @@ import androidx.compose.ui.geometry.Offset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.serialization.SerializationException
 import org.example.data.ItemAndRecipeState
 import org.example.graph.Graph
 import save.SaveHandler
