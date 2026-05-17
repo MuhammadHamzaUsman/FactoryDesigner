@@ -142,12 +142,11 @@ fun NodeCard(
                         value = textFieldValue,
                         spacing = 8.dp,
                         onValueChange = { textFieldValue = it },
-                        onDone = {
-                            if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
-                                controller.setMachineCount(uiNode.id, it)
-                            }
-                        },
-                    )
+                    ) {
+                        if (it.isNotEmpty() && it.matches(Regex("^\\d*\\.?\\d*$"))) {
+                            controller.setMachineCount(uiNode.id, it)
+                        }
+                    }
                 }
             }
         }

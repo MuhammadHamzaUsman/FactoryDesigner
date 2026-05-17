@@ -1,28 +1,17 @@
 package ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.vector.PathParser
-import org.example.data.ItemAndRecipeState
-import org.example.graph.Graph
-import save.SaveHandler
-import ui.io.loadItemAndRecipe
-import ui.io.selectAndReadJsonFile
-import ui.logic.GraphEditorLogic
-import ui.model.Camera
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ui.state.AppState
-import ui.state.GraphEditorLayoutState
 
 @Composable
 fun MenuBar(
@@ -30,53 +19,76 @@ fun MenuBar(
     modifier: Modifier = Modifier
 ){
     var expanded by remember { mutableStateOf(false) }
-    val controller by appState.controller.collectAsState()
 
     Row(
         modifier = modifier
+            .width(230.dp)
     ) {
-        Column {
-            Text(
-                text = "File",
-                modifier = Modifier.clickable{ expanded = !expanded }
-            )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier
+                .width(75.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.tertiary,
+                    shape = RoundedCornerShape(
+                        0.dp,
+                        0.dp,
+                        if(expanded) 8.dp else 0.dp,
+                        0.dp
+                    )
+                )
+                .padding(start = 0.dp, end = 0.dp, top = 0.dp, bottom = 6.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(
+                        0.dp,
+                        0.dp,
+                        if(expanded) 8.dp else 0.dp,
+                        0.dp
+                    )
+                )
+                .padding(4.dp)
+        ) {
+            ThemedText("File"){ expanded = !expanded }
 
             if(expanded){
-                Text(
-                    text = "New",
-                    modifier = Modifier.clickable{ appState.createNewGraph() }
-                )
-
-                Text(
-                    text = "Open",
-                    modifier = Modifier.clickable{ appState.openGraph() }
-                )
-
-                Text(
-                    text = "Save",
-                    modifier = Modifier.clickable{ appState.saveGraph() }
-                )
-
-                Text(
-                    text = "Save As",
-                    modifier = Modifier.clickable{ appState.saveAsGraph() }
-                )
+                ThemedText("New"){ appState.createNewGraph() }
+                ThemedText("Open"){ appState.openGraph() }
+                ThemedText("Save") { appState.saveGraph() }
+                ThemedText("Save As"){ appState.saveAsGraph() }
             }
         }
 
-        Text(
+        ThemedText(
             text = "Item And Recipe",
-            modifier = Modifier.clickable{
-                val json = selectAndReadJsonFile()
-
-                if(json == null) {
-                    appState.generateError("File not selected.")
-                    return@clickable
-                }
-
-                val itemAndRecipeState = loadItemAndRecipe(json)
-                controller?.mergeItemAndRecipeState(itemAndRecipeState)
-            }
-        )
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.tertiary,
+                    shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 0.dp)
+                )
+                .padding(start = 0.dp, end = 6.dp, top = 0.dp, bottom = 6.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 0.dp)
+                )
+                .padding(4.dp)
+        ){ appState.addItemAndRecipe() }
     }
+}
+
+@Composable
+private fun ThemedText(
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleLarge,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+        lineHeight = 18.sp,
+        color = MaterialTheme.colorScheme.onTertiaryContainer,
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick)
+    )
 }

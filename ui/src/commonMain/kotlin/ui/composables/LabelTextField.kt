@@ -1,6 +1,7 @@
 package ui.composables
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ fun LabelTextField(
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
     onValueChange: (String) -> Unit,
+    onLabelClick: () -> Unit = {},
     onDone: (String) -> Unit
 ) {
     Row(
@@ -35,7 +37,9 @@ fun LabelTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(end = spacing)
+            modifier = Modifier
+                .clickable(onClick = onLabelClick)
+                .padding(end = spacing)
         )
 
         BasicTextField(

@@ -9,6 +9,8 @@ import kotlinx.serialization.SerializationException
 import org.example.data.ItemAndRecipeState
 import org.example.graph.Graph
 import save.SaveHandler
+import ui.io.loadItemAndRecipe
+import ui.io.selectAndReadJsonFile
 import ui.logic.GraphEditorLogic
 import ui.model.Camera
 
@@ -135,6 +137,22 @@ class AppState(controller: GraphEditorLogic?){
             }
 
         } catch (e: Exception) {
+            handleError(e)
+        }
+    }
+
+    fun addItemAndRecipe(){
+        try {
+            val json = selectAndReadJsonFile()
+
+            if(json == null) {
+                generateError("File not selected.")
+                return
+            }
+
+            val itemAndRecipeState = loadItemAndRecipe(json)
+            controller.value?.mergeItemAndRecipeState(itemAndRecipeState)
+        }catch (e: Exception){
             handleError(e)
         }
     }

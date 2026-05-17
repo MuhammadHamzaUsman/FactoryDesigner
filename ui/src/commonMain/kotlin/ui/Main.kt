@@ -1,5 +1,7 @@
 package ui
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.example.compose.AppTheme
@@ -22,7 +24,10 @@ fun main() {
             title = "Test App"
         ) {
             AppTheme {
-                GraphScreen(appState)
+                GraphScreen(
+                    appState,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

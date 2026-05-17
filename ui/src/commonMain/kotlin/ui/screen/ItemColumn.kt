@@ -67,15 +67,9 @@ fun ItemColumn(
                     .combinedClickable(
                         onDoubleClick = {
                             controller.setDisplayEdge(uiNode.id, item, isInput, nodePos)
-                        }
-                    ) {
-                        if(isInput){
-                            controller.handleInputConnectorClick(uiNode.id, item, nodePos)
-                        }
-                        else{
-                            controller.handleOutputConnectorClick(uiNode.id, item, nodePos)
-                        }
-                    }
+                        },
+                        onClick = {}
+                    )
                     .width(150.dp),
                 onValueChange = { textField = it },
                 onDone = {
@@ -83,6 +77,14 @@ fun ItemColumn(
                         controller.setItemCount(uiNode.id, item, it, isInput)
                     }
                 },
+                onLabelClick = {
+                    if(isInput){
+                        controller.handleInputConnectorClick(uiNode.id, item, nodePos)
+                    }
+                    else{
+                        controller.handleOutputConnectorClick(uiNode.id, item, nodePos)
+                    }
+                }
             )
         }
     }
